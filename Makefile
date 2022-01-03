@@ -28,7 +28,6 @@ TOP_DIR   ?= ../freetype
 TOP_DIR_2 ?= .
 OBJ_DIR   ?= $(TOP_DIR)/objs
 
-LIBRSVG_INCLUDES=$(shell pkg-config librsvg-2.0 --cflags)
 
 ######################################################################
 #
@@ -126,6 +125,16 @@ else
     SRC_DIR := $(TOP_DIR_2)/src
   endif
 
+  ifeq ($(PLATFORM),unixdev)
+    # `FT_DEMO_CFLAGS` comes from FreeType's `configure` script (via
+    # `builds/unix/unix-cc.mk`), holding additional flags to compile the
+    # FreeType demo programs.
+    #
+    # For the pure `make` call (without using `configure`) we have to add
+    # all needed cflags manually.
+    FT_DEMO_CFLAGS := $(shell pkg-config --cflags librsvg-2.0)
+  endif
+
   FT_INCLUDES := $(OBJ_BUILD) \
                  $(DEVEL_DIR) \
                  $(TOP_DIR)/include \
@@ -134,7 +143,8 @@ else
   COMPILE = $(CC) $(ANSIFLAGS) \
                   $(INCLUDES:%=$I%) \
                   $(CPPFLAGS) \
-                  $(CFLAGS)
+                  $(CFLAGS) \
+                  $(FT_DEMO_CFLAGS)
 
   # Enable C99 for gcc to avoid warnings.
   # Note that clang++ aborts with an error if we use `-std=C99',
@@ -165,18 +175,27 @@ else
   LINK_ITEMS = $T$(subst /,$(COMPILER_SEP),$@ $<)
 
   ifeq ($(PLATFORM),unix)
+    # `LDFLAGS` comes from the `configure` script (via FreeType's
+    # `builds/unix/unix-cc.mk`), holding all linker flags necessary to
+    # link the FreeType library.
+    #
+    # `FT_DEMO_LDFLAGS` has been set in `unix-cc.mk`, too.
     override CC = $(CCraw)
     LINK_CMD    = $(LIBTOOL) --mode=link $(CC) \
                   $(subst /,$(COMPILER_SEP),$(LDFLAGS))
-    LINK_LIBS   = $(subst /,$(COMPILER_SEP),$(FTLIB) $(EFENCE)) $(LIB_CLOCK_GETTIME)
-    LINK_LIBS += $(shell pkg-config --libs librsvg-2.0 cairo)
+    LINK_LIBS   = $(subst /,$(COMPILER_SEP),$(FTLIB) $(EFENCE)) \
+                  $(FT_DEMO_LDFLAGS)
   else
     LINK_CMD = $(CC) $(subst /,$(COMPILER_SEP),$(LDFLAGS))
     ifeq ($(PLATFORM),unixdev)
-      LINK_LIBS := $(subst /,$(COMPILER_SEP),$(FTLIB) $(EFENCE)) -lm -lrt -lz -lbz2 -lpthread
+      # For the pure `make` call (without using `configure`) we have to add
+      # all needed libraries manually.
+      LINK_LIBS := $(subst /,$(COMPILER_SEP),$(FTLIB) $(EFENCE)) \
+                   -lm -lrt -lz -lbz2 -lpthread
       LINK_LIBS += $(shell pkg-config --libs libpng)
       LINK_LIBS += $(shell pkg-config --libs harfbuzz)
       LINK_LIBS += $(shell pkg-config --libs libbrotlidec)
+      LINK_LIBS += $(shell pkg-config --libs librsvg-2.0)
     else
       LINK_LIBS = $(subst /,$(COMPILER_SEP),$(FTLIB) $(EFENCE))
     endif
@@ -358,17 +377,14 @@ else
 
   $(OBJ_DIR_2)/ftcommon.$(SO): $(SRC_DIR)/ftcommon.c $(SRC_DIR)/ftcommon.h
 	  $(COMPILE) $(GRAPH_INCLUDES:%=$I%) \
-                     $(LIBRSVG_INCLUDES) \
-                     $T$(subst /,$(COMPILER_SEP),$@ $<)
-
-  $(OBJ_DIR_2)/rsvg-port.$(SO): $(SRC_DIR)/rsvg-port.c $(SRC_DIR)/rsvg-port.h
-	  $(COMPILE) $(GRAPH_INCLUDES:%=$I%) \
-                     $(LIBRSVG_INCLUDES) \
                      $T$(subst /,$(COMPILER_SEP),$@ $<)
 
   $(OBJ_DIR_2)/ftpngout.$(SO): $(SRC_DIR)/ftpngout.c $(SRC_DIR)/ftcommon.h
 	  $(COMPILE) $(GRAPH_INCLUDES:%=$I%) \
                      $T$(subst /,$(COMPILER_SEP),$@ $<)
+
+  $(OBJ_DIR_2)/rsvg-port.$(SO): $(SRC_DIR)/rsvg-port.c $(SRC_DIR)/rsvg-port.h
+	  $(COMPILE) $T$(subst /,$(COMPILER_SEP),$@ $<)
 
   FTCOMMON_OBJ := $(OBJ_DIR_2)/ftcommon.$(SO) \
                   $(OBJ_DIR_2)/ftpngout.$(SO)
@@ -426,7 +442,6 @@ else
                              $(SRC_DIR)/ftcommon.h \
                              $(GRAPH_LIB)
 	  $(COMPILE) $(GRAPH_INCLUDES:%=$I%) \
-                     $(LIBRSVG_INCLUDES) \
                      $T$(subst /,$(COMPILER_SEP),$@ $<)
 
   $(OBJ_DIR_2)/ftsdf.$(SO): $(SRC_DIR)/ftsdf.c \
