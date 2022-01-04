@@ -2,10 +2,11 @@
  *
  * rsvg-port.h
  *
- *   Librsvg based hook functions for OT-SVG rendering in FreeType. (headers)
+ *   Librsvg based hook functions for OT-SVG rendering in FreeType
+ *   (headers).
  *
- * Copyright (C) 1996-2021 by
- * David Turner, Robert Wilhelm, Werner Lemberg and Moazin Khatti.
+ * Copyright (C) 2021 by
+ * David Turner, Robert Wilhelm, Werner Lemberg, and Moazin Khatti.
  *
  * This file is part of the FreeType project, and may only be used,
  * modified, and distributed under the terms of the FreeType project
@@ -23,32 +24,40 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
-  /* Different hook functions can persist data by creating a state structure
-   * and putting its address in `library->svg_renderer_state`.  Functions can
-   * store and retrieve data from this structure
+
+  /*
+   * Different hook functions can access persisting data by creating a state
+   * structure and putting its address in `library->svg_renderer_state`.
+   * Functions can then store and retrieve data from this structure.
    */
-  typedef struct Rsvg_Port_StateRec_
+  typedef struct  Rsvg_Port_StateRec_
   {
-    cairo_surface_t    *rec_surface;
-    double             x;
-    double             y;
+    cairo_surface_t  *rec_surface;
+
+    double  x;
+    double  y;
+
   } Rsvg_Port_StateRec;
 
   typedef struct Rsvg_Port_StateRec_*  Rsvg_Port_State;
 
+
   FT_Error
-  rsvg_port_init( FT_Pointer *state);
+  rsvg_port_init( FT_Pointer  *state );
 
   void
-  rsvg_port_free( FT_Pointer *state );
+  rsvg_port_free( FT_Pointer  *state );
 
   FT_Error
-  rsvg_port_render( FT_GlyphSlot slot,
-                    FT_Pointer *state );
+  rsvg_port_render( FT_GlyphSlot  slot,
+                    FT_Pointer   *state );
 
   FT_Error
   rsvg_port_preset_slot( FT_GlyphSlot  slot,
-                         FT_Bool  cache,
-                         FT_Pointer *state);
+                         FT_Bool       cache,
+                         FT_Pointer   *state );
 
-#endif
+#endif /* RSVG_PORT_H */
+
+
+/* End */

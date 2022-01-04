@@ -29,7 +29,6 @@
 #include FT_FONT_FORMATS_H
 #include FT_OTSVG_H
 
-#include <rsvg-port.h>
 
   /* error messages */
 #undef FTERRORS_H_
@@ -40,6 +39,7 @@
 #include "common.h"
 #include "strbuf.h"
 #include "ftcommon.h"
+#include "rsvg-port.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -340,10 +340,12 @@
   {
     FTDemo_Handle*  handle;
 
-    SVG_RendererHooks  hooks = {(SVG_Lib_Init_Func)rsvg_port_init,
-                                (SVG_Lib_Free_Func)rsvg_port_free,
-                                (SVG_Lib_Render_Func)rsvg_port_render,
-                                (SVG_Lib_Preset_Slot_Func)rsvg_port_preset_slot};
+    SVG_RendererHooks  hooks = {
+                         (SVG_Lib_Init_Func)rsvg_port_init,
+                         (SVG_Lib_Free_Func)rsvg_port_free,
+                         (SVG_Lib_Render_Func)rsvg_port_render,
+                         (SVG_Lib_Preset_Slot_Func)rsvg_port_preset_slot };
+
 
     handle = (FTDemo_Handle *)malloc( sizeof ( FTDemo_Handle ) );
     if ( !handle )
@@ -355,6 +357,7 @@
     if ( error )
       PanicZ( "could not initialize FreeType" );
 
+    /* XXX error handling? */
     FT_Property_Set( handle->library, "ot-svg", "svg_hooks", &hooks );
 
     error = FTC_Manager_New( handle->library, 0, 0, 0,
