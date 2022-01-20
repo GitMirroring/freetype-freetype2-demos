@@ -16,6 +16,8 @@
  *
  */
 
+#ifdef FT_CONFIG_OPTION_SVG
+
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 #include <stdlib.h>
@@ -395,6 +397,13 @@
 
     return error;
   }
+
+#else /* !FT_CONFIG_OPTION_SVG */
+
+  /* ANSI C doesn't like empty source files */
+  typedef int  _rsvg_port_dummy;
+
+#endif /* !FT_CONFIG_OPTION_SVG */
 
 
 /* End */
