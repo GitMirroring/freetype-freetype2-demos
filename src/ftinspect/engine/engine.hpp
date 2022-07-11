@@ -9,6 +9,7 @@
 
 #include <QString>
 #include <QMap>
+#include <QVector>
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
