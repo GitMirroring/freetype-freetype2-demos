@@ -43,7 +43,11 @@ TripletSelector::repopulateFonts()
       auto& info = ffm[i];
       auto name = info.filePath();
       auto displayName = info.fileName();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
       if (info.isSymbolicLink())
+#else
+      if (info.isSymLink())
+#endif
         displayName += " [symlink]";
 
       fontComboBox_->addItem(displayName, name);
@@ -321,9 +325,11 @@ TripletSelector::createLayout()
   faceComboBox_ = new QComboBox(this);
   niComboBox_    = new QComboBox(this);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
   fontComboBox_->setPlaceholderText(tr("No font open"));
   faceComboBox_->setPlaceholderText(tr("No face available"));
   niComboBox_->setPlaceholderText(tr("No named instance available"));
+#endif
   
   closeFontButton_ = new QToolButton(this);
   fontUpButton_    = new QToolButton(this);
