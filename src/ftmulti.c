@@ -112,7 +112,7 @@
   static FT_Fixed      requested_pos[MAX_MM_AXES];
   static unsigned int  requested_cnt =  0;
   static unsigned int  used_num_axis =  0;
-  static int           increment     = 20;  /* for axes */
+  static double        increment     = 0.025;  /* for axes */
 
   /*
    * We use the following arrays to support both the display of all axes and
@@ -606,7 +606,7 @@
   Process_Event( void )
   {
     grEvent       event;
-    int           i;
+    double        i;
     unsigned int  axis;
 
 
@@ -685,14 +685,13 @@
     /* MM-related keys */
 
     case grKEY( '+' ):
-      /* value 100 is arbitrary */
-      if ( increment < 100 )
-        increment += 1;
+      if ( increment < 0.1 )
+        increment *= 2.0;
       break;
 
     case grKEY( '-' ):
-      if ( increment > 1 )
-        increment -= 1;
+      if ( increment > 0.01 )
+        increment *= 0.5;
       break;
 
     case grKEY( 'a' ):
@@ -796,7 +795,7 @@
     if ( axis < num_shown_axes )
     {
       FT_Var_Axis*  a;
-      FT_Fixed      pos;
+      FT_Fixed      pos, rng;
       unsigned int  n;
 
 
@@ -804,6 +803,7 @@
       axis = (unsigned int)shown_axes[axis];
 
       a   = multimaster->axis + axis;
+      rng = a->maximum - a->minimum;
       pos = design_pos[axis];
 
       /*
@@ -812,15 +812,15 @@
        * for mac fonts, which have a range of ~3.  And it's rather extreme
        * for optical size even in PS.
        */
-      pos += FT_MulDiv( i, a->maximum - a->minimum, 1000 );
+      pos += (FT_Fixed)( i * rng );
       if ( pos < a->minimum )
-        pos = a->minimum;
-      if ( pos > a->maximum )
         pos = a->maximum;
+      if ( pos > a->maximum )
+        pos = a->minimum;
 
-      /* for MM fonts, round the design coordinates to integers,         */
+      /* for MM fonts or large ranges, round the design coordinates      */
       /* otherwise round to two decimal digits to make the PS name short */
-      if ( !FT_IS_SFNT( face ) )
+      if ( !FT_IS_SFNT( face ) || rng > 0x200000 )
         pos = FT_RoundFix( pos );
       else
       {
@@ -1193,7 +1193,7 @@
 
 
           strbuf_reset( header );
-          strbuf_format( header, "%c %.50s%s: %.02f",
+          strbuf_format( header, "%c %.50s%s: %.4g",
                          n + 'A',
                          multimaster->axis[axis].name,
                          hidden[axis] ? "*" : "",
@@ -1235,7 +1235,7 @@
             ptsize,
             Num,
             format_str,
-            increment / 10.0 );
+            100. * increment );
         }
       }
       else
