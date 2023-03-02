@@ -241,6 +241,27 @@
 
 /* */
 
+/* works best to convert from 4 or 16 grays to 256 grays,
+ * needs aligned buffers and clean padding
+ */
+static void
+gblender_glyph_upgray( grBitmap*  glyph )
+{
+  int        i, size = abs( glyph->pitch ) * glyph->rows;
+  uint32_t*  buf = (uint32_t*)glyph->buffer;
+  uint32_t   scale = 255U / ( glyph->grays - 1 );
+
+
+  for ( i = 4; i <= size; i += 4, buf++ )
+    *buf *= scale;
+
+  for ( i -= 4; i < size; i++ )
+    glyph->buffer[i] *= scale;
+
+  glyph->grays = 256;
+}
+
+
 static int
 gblender_blit_init( GBlenderBlit           blit,
                     int                    dst_x,
@@ -269,6 +290,8 @@ gblender_blit_init( GBlenderBlit           blit,
   {
   case gr_pixel_mode_gray:
     src_format = GBLENDER_SOURCE_GRAY8;
+    if ( glyph->grays != 256 )
+      gblender_glyph_upgray( glyph );
     if ( blender->channels )
       gblender_clear( blender );
     break;
