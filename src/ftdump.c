@@ -750,6 +750,7 @@
   {
     FT_MM_Var*       mm;
     FT_Multi_Master  dummy;
+    FT_SfntName      name;
     FT_UInt          is_GX, i;
 
 
@@ -768,6 +769,10 @@
     {
       FT_Fixed*    coords;
       const char*  ps_name;
+
+      FT_Long              instance_count;
+      FT_UInt              default_named_instance;
+      FT_Var_Named_Style*  named_styles;
 
 
       /* Show Variation PostScript Name Prefix. */
@@ -794,15 +799,76 @@
       FT_Set_Var_Design_Coordinates( face, 0, NULL );
 
       free( coords );
+
+
+      /* Show named instances. */
+
+      instance_count = face->style_flags >> 16;
+      named_styles   = mm->namedstyle;
+
+      FT_Get_Default_Named_Instance( face, &default_named_instance );
+      default_named_instance--;   /* `named_styles` is a zero-based array */
+
+      printf( "GX named instances\n" );
+
+      for ( i = 0; i < instance_count; i++ )
+      {
+        int        pos;
+        FT_UInt    j;
+        FT_Bool    semicolon;
+        FT_Fixed*  c;
+
+
+        /* Since FreeType starts the instance numbering with value 1 */
+        /* in `face_index` we report the same here for consistency.  */
+        pos = printf( "   %u: ", i + 1);
+
+        name.string = NULL;
+        get_english_name_entry( face, named_styles[i].strid, &name );
+        if ( name.string )
+        {
+          if ( name.platform_id == TT_PLATFORM_MACINTOSH )
+            put_ascii( name.string, name.string_len, 0 );
+          else
+            put_unicode_be16( name.string, name.string_len, 0, utf8 );
+        }
+        else
+          printf( "UNAVAILABLE" );
+        printf( "%s\n", i == default_named_instance ? " (default)" : "" );
+
+        name.string = NULL;
+        get_english_name_entry( face, named_styles[i].psid, &name );
+        printf( "%*s   PS: ", pos, "" );
+        if ( name.string )
+        {
+          if ( name.platform_id == TT_PLATFORM_MACINTOSH )
+            put_ascii( name.string, name.string_len, 0 );
+          else
+            put_unicode_be16( name.string, name.string_len, 0, utf8 );
+        }
+        else
+          printf( "UNAVAILABLE" );
+        printf( "\n" );
+
+        semicolon = 0;
+        c         = named_styles[i].coords;
+
+        printf( "%*scoord: (", pos, "" );
+        for ( j = 0; j < mm->num_axis; j++ )
+        {
+          printf( "%s%g", semicolon ? ";" : "", c[j] / 65536.0);
+          semicolon = 1;
+        }
+        printf( ")\n" );
+      }
+
+      printf( "\n" );
     }
 
     printf( "%s axes\n", is_GX ? "GX" : "MM" );
 
     for ( i = 0; i < mm->num_axis; i++ )
     {
-      FT_SfntName  name;
-
-
       name.string = NULL;
 
       if ( is_GX )
