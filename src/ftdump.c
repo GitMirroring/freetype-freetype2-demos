@@ -746,7 +746,7 @@
 
 
   static void
-  Print_MM_Axes( FT_Face  face )
+  Print_MM_Info( FT_Face  face )
   {
     FT_MM_Var*       mm;
     FT_Multi_Master  dummy;
@@ -762,6 +762,38 @@
     {
       printf( "   Can't access axis data (error code %d)\n", error );
       return;
+    }
+
+    if ( is_GX )
+    {
+      FT_Fixed*    coords;
+      const char*  ps_name;
+
+
+      /* Show Variation PostScript Name Prefix. */
+
+      coords = (FT_Fixed*)malloc( mm->num_axis * sizeof ( FT_Fixed ) );
+      if ( coords == NULL )
+        return;
+
+      /* We temporarily activate variation font handling.  Because we */
+      /* use the default axes, the now retrieved PS name is identical */
+      /* to the PS name prefix.                                       */
+      FT_Get_Var_Design_Coordinates( face, mm->num_axis, coords );
+      FT_Set_Var_Design_Coordinates( face, mm->num_axis, coords );
+
+      ps_name = FT_Get_Postscript_Name( face );
+      if ( ps_name == NULL )
+        ps_name = "UNAVAILABLE";
+
+      printf( "additional GX font info\n");
+      printf( "   VF PS name prefix: %s\n", ps_name );
+      printf( "\n" );
+
+      /* Switch off variation font handling. */
+      FT_Set_Var_Design_Coordinates( face, 0, NULL );
+
+      free( coords );
     }
 
     printf( "%s axes\n", is_GX ? "GX" : "MM" );
@@ -1360,7 +1392,7 @@
       if ( FT_HAS_MULTIPLE_MASTERS( face ) )
       {
         printf( "\n" );
-        Print_MM_Axes( face );
+        Print_MM_Info( face );
       }
 
       FT_Done_Face( face );
