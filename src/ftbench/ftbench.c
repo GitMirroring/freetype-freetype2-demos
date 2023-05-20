@@ -40,7 +40,7 @@
 #ifdef UNIX
 #include <unistd.h>
 #else
-#include "mlgetopt.h"
+#include "../mlgetopt.h"
 #endif
 
 #ifdef _WIN32
