@@ -669,7 +669,7 @@
                         -1, error_code );
 
     /* describe kerning */
-    x = sprintf( kern, "%s pairs, %s track",
+    x = snprintf( kern, 40, "%s pairs, %s track",
              sc->kerning_mode == KERNING_MODE_SMART  ? "adjusted" :
              sc->kerning_mode == KERNING_MODE_NORMAL ? "" : "no",
              sc->kerning_degree == KERNING_DEGREE_TIGHT  ? "tight" :

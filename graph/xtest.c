@@ -110,7 +110,7 @@ int  main( void )
 
         if (!kname)
         {
-          sprintf( kname_temp, "char '%c'", (char)event.key );
+          snprintf( kname_temp, 16, "char '%c'", (char)event.key );
           kname = kname_temp;
         }
 

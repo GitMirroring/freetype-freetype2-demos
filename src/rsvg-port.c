@@ -319,7 +319,7 @@
 
 
       /* Render only the element with its ID equal to `glyph<ID>`. */
-      sprintf( str + 6, "%u", slot->glyph_index );
+      snprintf( str + 6, 32 - 6, "%u", slot->glyph_index );
       ret = rsvg_handle_render_cairo_sub( handle, rec_cr, str );
       if ( ret == FALSE )
       {

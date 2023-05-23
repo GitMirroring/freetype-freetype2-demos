@@ -27,6 +27,9 @@
   typedef FT_BBox    Box;
 
 
+#define BUFSIZE  512
+
+
 #define FT_CALL( X )                                                \
           do                                                        \
           {                                                         \
@@ -219,46 +222,51 @@
   static void
   write_header( void )
   {
-    static char  header_string[512];
+    static char  header_string[BUFSIZE];
 
 
-    sprintf( header_string,
-             "Glyph Index: %d, Pt Size: %d, Spread: %d, Scale: %u",
-             status.glyph_index,
-             status.ptsize,
-             status.spread,
-             status.scale );
+    snprintf( header_string,
+              BUFSIZE,
+              "Glyph Index: %d, Pt Size: %d, Spread: %d, Scale: %u",
+              status.glyph_index,
+              status.ptsize,
+              status.spread,
+              status.scale );
     grWriteCellString( display->bitmap, 0, 0,
                        header_string, display->fore_color );
 
-    sprintf( header_string,
-             "Position Offset: %d,%d",
-             status.x_offset,
-             status.y_offset );
+    snprintf( header_string,
+              BUFSIZE,
+              "Position Offset: %d,%d",
+              status.x_offset,
+              status.y_offset );
     grWriteCellString( display->bitmap, 0, 1 * HEADER_HEIGHT,
                        header_string, display->fore_color );
 
-    sprintf( header_string,
-             "SDF Generated in: %.0f ms, From: %s",
-             (double)status.generation_time,
-             status.use_bitmap ? "Bitmap" : "Outline" );
+    snprintf( header_string,
+              BUFSIZE,
+              "SDF Generated in: %.0f ms, From: %s",
+              (double)status.generation_time,
+              status.use_bitmap ? "Bitmap" : "Outline" );
     grWriteCellString( display->bitmap, 0, 2 * HEADER_HEIGHT,
                        header_string, display->fore_color );
 
-    sprintf( header_string,
-             "Filtering: %s, View: %s",
-             status.nearest_filtering ? "Nearest" : "Bilinear",
-             status.reconstruct ? "Reconstructing": "Raw" );
+    snprintf( header_string,
+              BUFSIZE,
+              "Filtering: %s, View: %s",
+              status.nearest_filtering ? "Nearest" : "Bilinear",
+              status.reconstruct ? "Reconstructing": "Raw" );
     grWriteCellString( display->bitmap, 0, 3 * HEADER_HEIGHT,
                        header_string, display->fore_color );
 
     if ( status.reconstruct )
     {
       /* Only print these in reconstruction mode. */
-      sprintf( header_string,
-               "Width: %.2f, Edge: %.2f",
-               (double)status.width,
-               (double)status.edge );
+      snprintf( header_string,
+                BUFSIZE,
+                "Width: %.2f, Edge: %.2f",
+                (double)status.width,
+                (double)status.edge );
       grWriteCellString( display->bitmap, 0, 4 * HEADER_HEIGHT,
                          header_string, display->fore_color );
     }
