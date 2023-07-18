@@ -389,6 +389,7 @@
     handle->use_sbits  = 1;
     handle->use_color  = 1;
     handle->use_layers = 1;
+    handle->use_svg    = 1;
     handle->autohint   = 0;
     handle->lcd_mode   = LCD_MODE_AA;
 
@@ -467,8 +468,9 @@
   icon_span( int              y,
              int              count,
              const FT_Span*   spans,
-             grBitmap*        icon )
+             void*            user )
   {
+    grBitmap*       icon = (grBitmap*)user;
     FT_UInt32*      dst_line;
     FT_UInt32*      dst;
     FT_UInt32       color = 0xFF7F00;
@@ -508,7 +510,7 @@
 
     FT_Raster_Params  params = { NULL, NULL,
                                  FT_RASTER_FLAG_AA | FT_RASTER_FLAG_DIRECT,
-                                 (FT_SpanFunc)icon_span, NULL, NULL, NULL,
+                                 icon_span, NULL, NULL, NULL,
                                  &icon, { 0, 0, 0, 0 } };
 
 
@@ -886,6 +888,9 @@
 
     if ( handle->use_color )
       flags |= FT_LOAD_COLOR;
+
+    if ( !handle->use_svg )
+      flags |= FT_LOAD_NO_SVG;
 
     if ( handle->hinted )
     {
