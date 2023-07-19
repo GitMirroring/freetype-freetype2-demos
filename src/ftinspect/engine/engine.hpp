@@ -21,6 +21,7 @@
 #include <QMap>
 
 #include <ft2build.h>
+#include <qcombobox.h>
 #include <freetype/freetype.h>
 #include <freetype/ftcache.h>
 #include <freetype/ftcolor.h>
@@ -145,6 +146,8 @@ public:
   QString namedInstanceName(int fontIndex,
                             long faceIndex,
                             int index);
+  unsigned defaultNamedInstanceIndex(int fontIndex,
+                                int faceIndex);
 
   bool currentFontTricky();
   bool currentFontBitmapOnly();
