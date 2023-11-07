@@ -286,6 +286,10 @@
     if ( argc < 2 || sscanf( argv[0], "%d", &ptsize) != 1 )
       Usage( execname );
 
+    /* sync target and mode */
+    load_flags |= FT_LOAD_TARGET_( render_mode );
+    render_mode = (FT_Render_Mode)( ( load_flags & 0xF0000 ) >> 16 );
+
     error = FT_Init_FreeType( &library );
     if ( error )
     {
@@ -311,8 +315,10 @@
         continue;
       }
 
-      printf( quiet ? "  %s %s:" : "  %s %s\n",
-              face->family_name, face->style_name );
+      printf( "  %s %s, %d ppem, %08X, %d%c",
+              face->family_name, face->style_name,
+              ptsize, load_flags, render_mode,
+              quiet ? ':' : '\n' );
 
       error = FT_Set_Char_Size( face, ptsize << 6, ptsize << 6, 72, 72 );
       if ( error )
