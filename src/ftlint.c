@@ -39,6 +39,9 @@
   static FT_Render_Mode  render_mode = FT_RENDER_MODE_NORMAL;
   static FT_Int32        load_flags  = FT_LOAD_DEFAULT;
 
+  static const FT_String*  modes[FT_RENDER_MODE_MAX] =
+    { "normal", "light", "mono", "lcd", "lcd-v", "svg" };
+
   static int           ptsize;
 
   static int  Fail;
@@ -315,9 +318,9 @@
         continue;
       }
 
-      printf( "  %s %s, %d ppem, %08X, %d%c",
+      printf( "  %s %s, %d ppem, %08X, %s%c",
               face->family_name, face->style_name,
-              ptsize, load_flags, render_mode,
+              ptsize, load_flags, modes[render_mode],
               quiet ? ':' : '\n' );
 
       error = FT_Set_Char_Size( face, ptsize << 6, ptsize << 6, 72, 72 );
