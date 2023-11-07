@@ -802,13 +802,8 @@
   static void
   header( FT_Face  face )
   {
-    const FT_String*  target =
-                 render_mode == FT_RENDER_MODE_NORMAL ? "normal" :
-                 render_mode == FT_RENDER_MODE_LIGHT  ? "light"  :
-                 render_mode == FT_RENDER_MODE_MONO   ? "mono"   :
-                 render_mode == FT_RENDER_MODE_LCD    ? "lcd"    :
-                 render_mode == FT_RENDER_MODE_LCD_V  ? "lcd-v"  :
-                 render_mode == FT_RENDER_MODE_SDF    ? "sdf"    : "";
+    const FT_String*  targets[FT_RENDER_MODE_MAX] =
+      { "normal", "light", "mono", "lcd", "lcd-v", "sdf" };
     const FT_String*  module_name = FT_FACE_DRIVER_NAME( face );
     const FT_String*  hinting_engine = "";
     FT_UInt           prop;
@@ -868,7 +863,7 @@
             face->family_name,
             face->style_name,
             module_name, hinting_engine,
-            target,
+            targets[render_mode],
             load_flags,
             FT_Get_Charmap_Index( face->charmap ),
             face->num_glyphs );
