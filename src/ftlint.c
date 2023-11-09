@@ -40,7 +40,7 @@
   static FT_Int32        load_flags  = FT_LOAD_DEFAULT;
 
   static const FT_String*  modes[FT_RENDER_MODE_MAX] =
-    { "normal", "light", "mono", "lcd", "lcd-v", "svg" };
+    { "normal", "light", "mono", "lcd", "lcd-v", "sdf" };
 
   static int           ptsize;
 
@@ -95,7 +95,7 @@
     unsigned long  format = slot->format;
     FT_Outline*    outline = &slot->outline;
     short          c, p, first, last;
-    FT_Vector      u, v;
+    FT_Vector      d, v;
     FT_Pos         taxi;
     FT_BBox        cbox;
 
@@ -118,15 +118,17 @@
       first = last + 1;
       last = outline->contours[c];
 
-      u = outline->points[last];
+      d = outline->points[last];
       for ( p = first; p <= last; p++ )
       {
-        v = outline->points[p];
+        v    = outline->points[p];
+        d.x -= v.x;
+        d.y -= v.y;
 
-        taxi += v.x > u.x ? v.x - u.x : u.x - v.x;
-        taxi += v.y > u.y ? v.y - u.y : u.y - v.y;
+        taxi += d.x < 0 ? -d.x : d.x;
+        taxi += d.y < 0 ? -d.y : d.y;
 
-        u = v;
+        d = v;
       }
     }
 
