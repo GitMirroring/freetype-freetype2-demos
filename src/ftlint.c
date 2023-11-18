@@ -89,6 +89,66 @@
   }
 
 
+#define SIGN( x )  ( ( x > 0 ) - ( x < 0 ) )
+
+  static void
+  Explore( FT_GlyphSlot  slot )
+  {
+    unsigned long  format = slot->format;
+    FT_Outline*    outline = &slot->outline;
+    short          c, p, first, last;
+    FT_Vector      d, v;
+    int            dx, dy, bx, by, sx, sy;
+
+
+    if ( format != FT_GLYPH_FORMAT_OUTLINE )
+    {
+      fputs( "   +    ", stdout );
+      return;
+    }
+
+    sx = sy = 0;
+    last = -1;
+    for ( c = 0; c < outline->n_contours; c++ )
+    {
+      first = last + 1;
+      last = outline->contours[c];
+
+      bx = by = 0;
+      d = outline->points[last];
+      for ( p = first; p <= last; p++ )
+      {
+        v    = outline->points[p];
+        d.x -= v.x;
+        d.y -= v.y;
+        dx   = SIGN( d.x );
+        dy   = SIGN( d.y );
+
+        if ( dx )
+        {
+          sx += ( dx == -bx );  /* count turns */
+          bx  = dx;
+        }
+
+        if ( dy )
+        {
+          sy += ( dy == -by );  /* count turns */
+          by  = dy;
+        }
+
+        d = v;
+      }
+
+      /* count is odd only if initial turn is missed  */
+      /* round it to even and proceed to next contour */
+      sx += sx & 1;
+      sy += sy & 1;
+    }
+
+    printf( "%3d+%-3d ", sx, sy );
+  }
+
+
   static void
   Examine( FT_GlyphSlot  slot )
   {
@@ -342,8 +402,8 @@
 
       if ( !quiet )
       {
-        /*        "NNNNN SS.SS WWWxHHHH X.XXXX Y.YYYY MMDD55MMDD55MMDD55MMDD55MMDD55MM" */
-        printf( "\n GID  shape imgsize  Xacut  Yacut  MD5 hashsum" );
+        /*        "NNNNN SS.SS XXX+YYY WWWxHHHH X.XXXX Y.YYYY MMDD55MMDD55MMDD55MMDD55MMDD55MM" */
+        printf( "\n GID  shape X+Yturn imgsize  Xacut  Yacut  MD5 hashsum" );
         printf( "\n-------------------------------------------------------------------\n" );
       }
 
@@ -371,6 +431,7 @@
         printf( "%5u ", id );
 
         Examine( face->glyph );
+        Explore( face->glyph );
 
         error = FT_Render_Glyph( face->glyph, render_mode );
         if ( error && face->glyph->format != FT_GLYPH_FORMAT_BITMAP )
