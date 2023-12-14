@@ -1332,9 +1332,9 @@
         continue;
       }
 
-      if ( loc + 1 >= end )
+      if ( end == 0 || loc >= end - 1 )
       {
-        printf( "\nglyph %hd: invalid offset (%d)\n", i, loc );
+        printf( "\nglyph %hd: invalid offset (%u)\n", i, loc );
         continue;
       }
 
@@ -1347,7 +1347,7 @@
 
         if ( loc + 1 >= end )
         {
-          printf( "\nglyph %hd: invalid offset (%d)\n", i, loc );
+          printf( "\nglyph %hd: invalid offset (%u)\n", i, loc );
           continue;
         }
 
