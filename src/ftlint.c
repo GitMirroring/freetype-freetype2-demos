@@ -121,17 +121,17 @@
         v    = outline->points[p];
         d.x -= v.x;
         d.y -= v.y;
-        dx   = SIGN( d.x );
-        dy   = SIGN( d.y );
 
-        if ( dx )
+        if ( d.x )
         {
+          dx  = SIGN( d.x );
           sx += ( dx == -bx );  /* count turns */
           bx  = dx;
         }
 
-        if ( dy )
+        if ( d.y )
         {
+          dy  = SIGN( d.y );
           sy += ( dy == -by );  /* count turns */
           by  = dy;
         }
@@ -139,8 +139,8 @@
         d = v;
       }
 
-      /* count is odd only if initial turn is missed  */
-      /* round it to even and proceed to next contour */
+      /* counts must be even unless the first turn was missed  */
+      /* so make them even and proceed to the next contour     */
       sx += sx & 1;
       sy += sy & 1;
     }
