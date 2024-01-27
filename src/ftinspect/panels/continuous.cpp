@@ -1,6 +1,6 @@
 // continuous.cpp
 
-// Copyright (C) 2022-2023 by
+// Copyright (C) 2022-2024 by
 // Charlie Jiang.
 
 #include "continuous.hpp"
