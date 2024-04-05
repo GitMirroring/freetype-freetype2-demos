@@ -475,7 +475,7 @@ grBlitGlyphToSurface( grSurface*  surface,
 
 
   /* check arguments */
-  if ( !surface || !glyph )
+  if ( !surface || !glyph || !glyph->buffer )
   {
     grError = gr_err_bad_argument;
     return -1;
