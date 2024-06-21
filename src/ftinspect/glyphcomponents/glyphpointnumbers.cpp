@@ -55,8 +55,8 @@ GlyphPointNumbers::paint(QPainter* painter,
 #endif
 
     FT_Vector* points = outline_.points;
-    FT_Short* contours = outline_.contours;
-    char* tags = outline_.tags;
+    FT_UShort* contours = outline_.contours;
+    FT_Byte* tags = outline_.tags;
 
     QVector2D octants[8] = { QVector2D(1, 0),
                              QVector2D(0.707f, -0.707f),

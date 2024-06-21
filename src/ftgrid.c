@@ -342,7 +342,7 @@
                FT_F26Dot6      radius )
   {
     FT_Outline*  outline;
-    char*        tag;
+    FT_Byte*     tag;
     FT_Vector*   vec;
     FT_F26Dot6   disp = (FT_F26Dot6)( radius * 0.5523 );
     /* so that Bézier curve touches circle at 0, 45, and 90 degrees */
@@ -669,9 +669,9 @@
       if ( st->work & DO_DOTNUMBERS )
       {
         FT_Vector*  points   = gimage->points;
-        FT_Short*   contours = gimage->contours;
-        char*       tags     = gimage->tags;
-        short       c, n;
+        FT_UShort*  contours = gimage->contours;
+        FT_Byte*    tags     = gimage->tags;
+        int         c, n;
         char        number_string[10];
         size_t      number_string_len = sizeof ( number_string );
 
@@ -685,7 +685,7 @@
         {
           for (;;)
           {
-            short      prev, next;
+            int        prev, next;
             FT_Vector  in, out, middle;
             FT_Fixed   in_len, out_len, middle_len;
             int        num_digits;

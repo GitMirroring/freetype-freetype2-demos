@@ -96,7 +96,7 @@
   {
     unsigned long  format = slot->format;
     FT_Outline*    outline = &slot->outline;
-    short          c, p, first, last;
+    int            c, p, first, last;
     FT_Vector      d, v;
     int            dx, dy, bx, by, sx, sy;
 
@@ -154,7 +154,7 @@
   {
     unsigned long  format = slot->format;
     FT_Outline*    outline = &slot->outline;
-    short          c, p, first, last;
+    int            c, p, first, last;
     FT_Vector      d, v;
     FT_Pos         taxi;
     FT_BBox        cbox;
