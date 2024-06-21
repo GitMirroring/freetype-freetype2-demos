@@ -492,21 +492,22 @@
   FTDemo_Icon( FTDemo_Handle*   handle,
                FTDemo_Display*  display )
   {
-    FT_Vector   p[] = { { 4, 8}, { 4,10}, { 8,12}, { 8,52}, { 4,54},
-                        { 4,56}, {60,56}, {60,44}, {58,44}, {56,52},
-                        {44,52}, {44,12}, {48,10}, {48, 8}, {32, 8},
-                        {32,10}, {36,12}, {36,52}, {16,52}, {16,36},
-                        {24,36}, {26,40}, {28,40}, {28,28}, {26,28},
-                        {24,32}, {16,32}, {16,12}, {20,10}, {20, 8} };
-    char        t[] = { 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
-                        1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1 };
-    short       c[] = {29};
-    FT_Outline  FT  = { sizeof ( c ) / sizeof ( c[0] ),
-                        sizeof ( p ) / sizeof ( p[0] ),
-                        p, t, c, FT_OUTLINE_NONE };
-    grBitmap    icon = { 0, 0, 0, gr_pixel_mode_none, 0, NULL };
-    grBitmap*   picon = NULL;
-    int         size, i;
+    FT_Vector       p[] = { { 4, 8}, { 4,10}, { 8,12}, { 8,52}, { 4,54},
+                            { 4,56}, {60,56}, {60,44}, {58,44}, {56,52},
+                            {44,52}, {44,12}, {48,10}, {48, 8}, {32, 8},
+                            {32,10}, {36,12}, {36,52}, {16,52}, {16,36},
+                            {24,36}, {26,40}, {28,40}, {28,28}, {26,28},
+                            {24,32}, {16,32}, {16,12}, {20,10}, {20, 8} };
+    unsigned char   t[] = { 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,
+                            1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1 };
+    unsigned short  c[] = { 29 };
+    FT_Outline      FT  = { sizeof ( c ) / sizeof ( c[0] ),
+                            sizeof ( p ) / sizeof ( p[0] ),
+                            p, t, c, FT_OUTLINE_NONE };
+
+    grBitmap   icon  = { 0, 0, 0, gr_pixel_mode_none, 0, NULL };
+    grBitmap*  picon = NULL;
+    int        size, i;
 
     FT_Raster_Params  params = { NULL, NULL,
                                  FT_RASTER_FLAG_AA | FT_RASTER_FLAG_DIRECT,
