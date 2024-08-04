@@ -29,6 +29,10 @@
 #include "mac/grmac.h"
 #endif
 
+#ifdef DEVICE_COCOA
+#include "cocoa/grcocoa.h"
+#endif
+
 #ifdef DEVICE_ALLEGRO
 #include "allegro/gralleg.h"
 #endif

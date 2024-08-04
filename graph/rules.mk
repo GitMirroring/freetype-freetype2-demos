@@ -38,7 +38,6 @@ GRAPH_OBJS := $(OBJ_DIR_2)/gblblit.$(O)   \
               $(OBJ_DIR_2)/grswizzle.$(O)
 
 
-
 # Default value for COMPILE_GRAPH_LIB;
 # this value can be modified by the system-specific graphics drivers.
 #
