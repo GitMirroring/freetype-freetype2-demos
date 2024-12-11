@@ -1196,9 +1196,9 @@
 
     strbuf_reset( buf );
     if ( res == 72 )
-      strbuf_format( buf, "%.4g ppem", ppem / 64.0 );
+      strbuf_format( buf, "%.5g ppem", ppem / 64.0 );
     else
-      strbuf_format( buf, "%g pt at %d dpi, %.4g ppem",
+      strbuf_format( buf, "%g pt at %d dpi, %.5g ppem",
                      ptsize / 64.0, res, ppem / 64.0 );
 
     if ( face->face_index >> 16 )
