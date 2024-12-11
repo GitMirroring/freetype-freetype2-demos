@@ -18,7 +18,6 @@
 #include "output.h"
 #include "mlgetopt.h"
 #include <stdlib.h>
-#include <math.h>
 
 #include <freetype/ftdriver.h>
 #include <freetype/ftlcdfil.h>
@@ -1072,34 +1071,18 @@
   static void
   event_grid_zoom( int  step )
   {
-    int  frc, exp;
+    FT_Int32*  scale = (FT_Int32*)&status.scale;  /* 32-bit float */
+    FT_Int32   delta = 1 << 21;
 
-    /* The floating scale is reversibly adjusted after decomposing it into */
-    /* fraction and exponent. Direct bit manipulation is less portable.    */
-    frc = (int)( 8 * frexpf( status.scale, &exp ) );
 
-    frc  = ( frc & 3 ) | ( exp << 2 );
-    frc += step;
-    exp  = frc >> 2;
-    frc  = ( frc & 3 ) | 4;
+    *scale += step * delta;  /* adjust float */
 
-    status.scale = ldexpf( frc / 8.0f, exp );
+    if ( status.scale > 256.0f )
+      status.scale = 256.0f;
+    if ( status.scale < 0.00390625f )
+      status.scale = 0.00390625f;
 
-    exp -= 3;
-    while ( ~frc & 1 )
-    {
-      frc >>= 1;
-      exp ++;
-    }
-
-    if ( exp >= 0 )
-      snprintf( status.header_buffer, sizeof ( status.header_buffer ),
-                "zoom scale %d:1", frc << exp );
-    else
-      snprintf( status.header_buffer, sizeof ( status.header_buffer ),
-                "zoom scale %d:%d", frc, 1 << -exp );
-
-    status.header = (const char *)status.header_buffer;
+    *scale &= -delta;        /* round  float */
   }
 
 
@@ -1625,7 +1608,8 @@
 
     if ( handle->current_font->num_indices )
     {
-      int  x;
+      int       x;
+      FT_Int32  frc, exp;
 
 
       x = snprintf( status.header_buffer, BUFSIZE,
@@ -1637,6 +1621,26 @@
       grWriteCellString( display->bitmap,
                          display->bitmap->width - 8 * x,
                          display->bitmap->rows - GR_FONT_SIZE,
+                         status.header_buffer, display->fore_color );
+
+      frc = *(FT_Int32*)&status.scale;  /* rounded 32-bit float */
+      exp = ( ( frc >> 23 ) & 255 ) - 129;
+      frc = ( ( frc >> 21 ) & 3   ) + 4;
+      while ( ~frc & 1 )
+      {
+        frc >>= 1;
+        exp ++;
+      }
+
+      if ( exp >= 0 )
+        snprintf( status.header_buffer, sizeof ( status.header_buffer ),
+                  "%d:1", frc << exp );
+      else
+        snprintf( status.header_buffer, sizeof ( status.header_buffer ),
+                  "%d:%d", frc, 1 << -exp );
+
+      grWriteCellString( display->bitmap,
+                         0, display->bitmap->rows - GR_FONT_SIZE,
                          status.header_buffer, display->fore_color );
     }
 
