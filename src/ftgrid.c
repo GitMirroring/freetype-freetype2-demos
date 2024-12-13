@@ -18,6 +18,7 @@
 #include "output.h"
 #include "mlgetopt.h"
 #include <stdlib.h>
+#include <math.h>
 
 #include <freetype/ftdriver.h>
 #include <freetype/ftlcdfil.h>
@@ -1071,18 +1072,18 @@
   static void
   event_grid_zoom( int  step )
   {
-    FT_Int32*  scale = (FT_Int32*)&status.scale;  /* 32-bit float */
-    FT_Int32   delta = 1 << 21;
+    int  frc, exp;
 
+    /* The floating scale is reversibly adjusted after decomposing it into */
+    /* fraction and exponent. Direct bit manipulation is less portable.    */
+    frc = (int)( 8.0f * frexpf( status.scale, &exp ) );
 
-    *scale += step * delta;  /* adjust float */
+    frc += step;
+    exp += ( frc >> 2 ) - 1;
+    frc  = ( frc  & 3 ) | 4;
 
-    if ( status.scale > 256.0f )
-      status.scale = 256.0f;
-    if ( status.scale < 0.00390625f )
-      status.scale = 0.00390625f;
-
-    *scale &= -delta;        /* round  float */
+    if ( -8 < exp && exp <= 8 )
+      status.scale = ldexpf( 0.125f * frc , exp );
   }
 
 
@@ -1608,8 +1609,7 @@
 
     if ( handle->current_font->num_indices )
     {
-      int       x;
-      FT_Int32  frc, exp;
+      int  x, frc, exp;
 
 
       x = snprintf( status.header_buffer, BUFSIZE,
@@ -1623,9 +1623,8 @@
                          display->bitmap->rows - GR_FONT_SIZE,
                          status.header_buffer, display->fore_color );
 
-      frc = *(FT_Int32*)&status.scale;  /* rounded 32-bit float */
-      exp = ( ( frc >> 23 ) & 255 ) - 129;
-      frc = ( ( frc >> 21 ) & 3   ) + 4;
+      frc  = (int)( 8.0f * frexpf( status.scale, &exp ) );
+      exp -= 3;
       while ( ~frc & 1 )
       {
         frc >>= 1;
