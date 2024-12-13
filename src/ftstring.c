@@ -167,11 +167,11 @@
     limit = outline->points + outline->n_points;
 
     if ( reflect & 1 )
-      for( vec = outline->points; vec < limit; vec++ )
+      for ( vec = outline->points; vec < limit; vec++ )
         vec->x = -vec->x;
 
     if ( reflect & 2 )
-      for( vec = outline->points; vec < limit; vec++ )
+      for ( vec = outline->points; vec < limit; vec++ )
         vec->y = -vec->y;
   }
 

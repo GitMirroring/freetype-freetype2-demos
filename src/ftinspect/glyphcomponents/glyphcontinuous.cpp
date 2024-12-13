@@ -207,7 +207,7 @@ GlyphContinuous::mouseMoveEvent(QMouseEvent* event)
     positionDelta_ = prevPositionDelta_ + delta;
     positionDelta_.setX(0); // Don't move horizontally.
     // The string renderer will handle the horizontal delta. See below.
-    
+
     // Note the double use of `scale_`: one for undoing `delta /= scale_`,
     // the other one for effectively dividing the width by the scaling
     // factor.

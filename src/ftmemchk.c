@@ -311,7 +311,7 @@ int  main( int argc, char** argv )
           if (error)
           {
             if ( Fail < 10 )
-              printf( "glyph %4u: 0x%04x\n" , id, error );
+              printf( "glyph %4u: 0x%04x\n", id, error );
             Fail++;
           }
         }

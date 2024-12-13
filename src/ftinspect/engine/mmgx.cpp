@@ -10,7 +10,7 @@
 
 
 MMGXState
-MMGXAxisInfo::get(Engine* engine, 
+MMGXAxisInfo::get(Engine* engine,
                   unsigned namedInstanceIndex,
                   std::vector<MMGXAxisInfo>& infos)
 {

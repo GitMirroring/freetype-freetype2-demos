@@ -521,7 +521,7 @@
     FT_UInt  gid = 0, max_gid = FT_UINT_MAX;
     FT_UInt  cid = 0, rng_from = 0, rng_to = 0;
     char     is_first_rng = 1;
-    
+
 
     if ( face->num_glyphs < 1 )
       return;
@@ -736,7 +736,7 @@
     /* CharMaps */
     printf( "charmaps (%d)\n", face->num_charmaps );
 
-    for( i = 0; i < face->num_charmaps; i++ )
+    for ( i = 0; i < face->num_charmaps; i++ )
     {
       FT_CharMap   cmap = face->charmaps[i];
       FT_Long      format  = FT_Get_CMap_Format( cmap );

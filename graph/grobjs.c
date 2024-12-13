@@ -171,11 +171,11 @@
 
 
     /* check mode */
-    if (check_mode(pixel_mode,num_grays))
+    if ( check_mode( pixel_mode, num_grays ) )
       goto Fail;
 
     /* check dimensions */
-    if (width < 0 || height < 0)
+    if ( width < 0 || height < 0 )
     {
       grError = gr_err_bad_argument;
       goto Fail;

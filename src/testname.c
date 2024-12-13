@@ -24,13 +24,13 @@
       exit( 1 );
     if ( FT_Init_FreeType( &font_library ) )
       exit( 1 );
-    if ( FT_New_Face( font_library, argv[1], 0 , &font_face ) )
+    if ( FT_New_Face( font_library, argv[1], 0, &font_face ) )
       exit( 1 );
-    if ( FT_Set_Char_Size( font_face , 0 , 768 , 300 , 300 ) )
+    if ( FT_Set_Char_Size( font_face, 0, 768, 300, 300 ) )
       exit( 1 );
 
     num_chars = (int)font_face->num_glyphs;
-    FT_Set_Transform( font_face , NULL , NULL );
+    FT_Set_Transform( font_face, NULL, NULL );
 
     for ( glyph_ind = 0 ; glyph_ind < num_chars; glyph_ind++ )
     {
@@ -52,7 +52,7 @@
               glyph_metrics.horiBearingX / 64,
               glyph_metrics.horiBearingY / 64,
               glyph_metrics.horiAdvance / 64,
-              bitmap.width , bitmap.rows );
+              bitmap.width, bitmap.rows );
     }
 
     return 0;

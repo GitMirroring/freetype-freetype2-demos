@@ -1083,7 +1083,7 @@
     frc  = ( frc  & 3 ) | 4;
 
     if ( -8 < exp && exp <= 8 )
-      status.scale = ldexpf( 0.125f * frc , exp );
+      status.scale = ldexpf( 0.125f * frc, exp );
   }
 
 

@@ -292,8 +292,8 @@ Engine::currentFontTricky()
 
 FTC_FaceID getFTCIdWithHighestBitSet(FTC_FaceID id)
 {
-  Q_ASSERT_X(sizeof(FTC_FaceID) >= sizeof(uintptr_t), 
-      "getFTCIdWithHighestBitSet", 
+  Q_ASSERT_X(sizeof(FTC_FaceID) >= sizeof(uintptr_t),
+      "getFTCIdWithHighestBitSet",
       "FTC_FaceID must be longer than uintptr_t");
   return reinterpret_cast<FTC_FaceID>(
       reinterpret_cast<uintptr_t>(id)
@@ -304,8 +304,8 @@ FTC_FaceID getFTCIdWithHighestBitSet(FTC_FaceID id)
 
 FTC_FaceID getFTCIdWithHighestBitClear(FTC_FaceID id)
 {
-  Q_ASSERT_X(sizeof(FTC_FaceID) >= sizeof(uintptr_t), 
-      "getFTCIdWithHighestBitClear", 
+  Q_ASSERT_X(sizeof(FTC_FaceID) >= sizeof(uintptr_t),
+      "getFTCIdWithHighestBitClear",
       "FTC_FaceID must be longer than uintptr_t");
   return reinterpret_cast<FTC_FaceID>(
       reinterpret_cast<uintptr_t>(id) & INTPTR_MAX

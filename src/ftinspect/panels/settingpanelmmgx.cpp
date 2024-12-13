@@ -192,7 +192,7 @@ SettingPanelMMGX::resetDefaultClicked()
 {
   for (auto w : itemWidgets_)
     w->resetDefault();
-  
+
   retrieveValues();
   emit mmgxCoordsChanged();
 }
