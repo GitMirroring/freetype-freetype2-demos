@@ -1074,16 +1074,21 @@
   {
     int  frc, exp;
 
-    /* The floating scale is reversibly adjusted after decomposing it into */
-    /* fraction and exponent. Direct bit manipulation is less portable.    */
+
+    if ( ( step > 0 && status.scale > 8.0f * status.scale_0 ) ||
+         ( step < 0 && status.scale * 8.0f < status.scale_0 ) )
+      return;
+
+    /* The floating scale is reversibly adjusted after decomposing it */
+    /* into fraction and exponent, meanwhile truncating the fraction. */
+    /* Direct bit manipulation in floats is less portable.            */
     frc = (int)( 8.0f * frexpf( status.scale, &exp ) );
 
     frc += step;
     exp += ( frc >> 2 ) - 1;
     frc  = ( frc  & 3 ) | 4;
 
-    if ( -8 < exp && exp <= 8 )
-      status.scale = ldexpf( 0.125f * frc, exp );
+    status.scale = ldexpf( 0.125f * frc, exp );
   }
 
 
