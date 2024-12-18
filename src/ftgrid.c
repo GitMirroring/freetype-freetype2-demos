@@ -633,7 +633,7 @@
         bitg.rows  = rows * piy;
 
         delta = ox + left * scale;
-        if ( delta < 0 )
+        if ( delta < 0 && bitg.mode != gr_pixel_mode_mono )
         {
           delta /= scale;
           width += delta;
