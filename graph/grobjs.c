@@ -189,14 +189,19 @@
       case gr_pixel_mode_pal4  : pitch = (width+3) >> 2; break;
 
       case gr_pixel_mode_pal8  :
-      case gr_pixel_mode_gray  : pitch = ( width + 3 ) & ~3; break;
+      case gr_pixel_mode_gray  :
+      case gr_pixel_mode_lcd   :
+      case gr_pixel_mode_lcdv  :
+      case gr_pixel_mode_lcd2  :
+      case gr_pixel_mode_lcdv2 : pitch = ( width + 3 ) & ~3; break;
 
       case gr_pixel_mode_rgb555:
       case gr_pixel_mode_rgb565: pitch = ( width*2 + 3 ) & ~3; break;
 
       case gr_pixel_mode_rgb24 : pitch = ( width*3 + 3 ) & ~3; break;
 
-      case gr_pixel_mode_rgb32 : pitch = width*4; break;
+      case gr_pixel_mode_rgb32 :
+      case gr_pixel_mode_bgra  : pitch = width*4; break;
 
       default:
         grError = gr_err_bad_target_depth;
