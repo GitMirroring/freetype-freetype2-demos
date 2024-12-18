@@ -1134,8 +1134,8 @@
     int  frc, exp;
 
 
-    if ( ( step > 0 && status.scale > 8.0f * status.scale_0 ) ||
-         ( step < 0 && status.scale * 8.0f < status.scale_0 ) )
+    if ( ( step > 0 && status.scale > 16.0f * status.scale_0 ) ||
+         ( step < 0 && status.scale * 16.0f < status.scale_0 ) )
       return;
 
     /* The floating scale is reversibly adjusted after decomposing it */
