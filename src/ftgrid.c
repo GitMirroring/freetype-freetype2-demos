@@ -586,13 +586,83 @@
                                       &x_advance, &y_advance, &glyf);
       if ( !error )
       {
-        bitmap_scale( st, &bitg, scale );
+        int  width = bitg.width;
+        int  rows  = bitg.rows;
+        int  delta, pix = 1, piy  = 1;
 
-        grBlitGlyphToSurface( display->surface, &bitg,
-                              ox + left * scale, oy - top * scale,
-                              st->axis_color );
 
-        grDoneBitmap( &bitg );
+        switch ( bitg.mode )
+        {
+        case gr_pixel_mode_lcd:
+        case gr_pixel_mode_lcd2:
+          width /= 3;
+          pix    = 3;
+          break;
+        case gr_pixel_mode_lcdv:
+        case gr_pixel_mode_lcdv2:
+          rows  /= 3;
+          piy    = 3;
+          break;
+        case gr_pixel_mode_bgra:
+          pix = 4;
+          break;
+        default:
+          break;
+        }
+
+        /* extreme zoom needs early crop to avoid memory overallocation */
+        delta = oy - top * scale;
+        if ( delta < 0 )
+        { 
+          delta /= scale;
+          rows  += delta;
+          top   += delta;
+          if ( bitg.pitch > 0 )
+            bitg.buffer -= delta * bitg.pitch * piy;
+        }
+
+        delta = oy + ( rows - top ) * scale - display->bitmap->rows;
+        if ( delta > 0 )
+        { 
+          delta /= scale;
+          rows  -= delta; 
+          if ( bitg.pitch < 0 )
+            bitg.buffer += delta * bitg.pitch * piy;
+        }
+
+        bitg.rows  = rows * piy;
+
+        delta = ox + left * scale;
+        if ( delta < 0 )
+        {
+          delta /= scale;
+          width += delta;
+          left  -= delta;
+          bitg.buffer -= delta * pix;
+        }
+
+        delta = ox + ( left + width ) * scale - display->bitmap->width;
+        if ( delta > 0 )
+        {
+          delta /= scale;
+          width -= delta;
+        }
+
+        if ( bitg.mode == gr_pixel_mode_bgra )
+          pix = 1;
+
+        bitg.width = width * pix;
+
+        if ( width > 0 && rows > 0 )
+        {
+          bitmap_scale( st, &bitg, scale );
+
+          grBlitGlyphToSurface( display->surface, &bitg,
+                                ox + left * scale, oy - top * scale,
+                                st->axis_color );
+
+          grDoneBitmap( &bitg );
+        }
 
         if ( glyf )
           FT_Done_Glyph( glyf );
