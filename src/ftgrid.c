@@ -398,60 +398,55 @@
                 grBitmap*   bit,
                 int         scale )
   {
+    int             r = bit->rows;
+    int             w = bit->width;
+    int             p = bit->pitch;
     unsigned char*  s = bit->buffer;
     unsigned char*  line;
-    int             pitch;
-    int             width;
     int             i, j, k;
 
-    pitch = bit->pitch > 0 ?  bit->pitch
-                           : -bit->pitch;
-    width = bit->width;
 
-    /* limit bitmap size */
-    if ( pitch * scale <= 0xFFFF && bit->rows * scale <= 0xFFFF )
-      line = (unsigned char*)malloc( (size_t)( pitch * bit->rows *
-                                               scale * scale ) );
-    else
-      line = NULL;
+    if ( p < 0 )
+      s -= p * ( r - 1 );
 
-    bit->buffer = line;  /* the bitmap now owns this buffer */
-
-    if ( !line )
+    bit->buffer = NULL;  /* to replace */
+    if ( grNewBitmap( bit->mode, bit->grays, w * scale, r * scale, bit ) )
       return;
+
+    line = bit->buffer;
 
     switch( bit->mode )
     {
       case gr_pixel_mode_mono:
-        for ( i = 0; i < bit->rows; i++ )
+        for ( i = 0; i < r; i++ )
         {
-          for ( j = 0; j < pitch * scale * 8; j++ )
-            if ( s[i * pitch + j / scale / 8] & ( 0x80 >> ( j / scale & 7 ) ) )
+          for ( j = 0; j < bit->width; j++ )
+            if ( s[i * p + j / scale / 8] & ( 0x80 >> ( j / scale & 7 ) ) )
               line[j / 8] |= 0x80 >> ( j & 7 );
             else
               line[j / 8] &= ~( 0x80 >> ( j & 7 ) );
 
-          for ( k = 1; k < scale; k++, line += pitch * scale )
-            memcpy( line + pitch * scale, line, (size_t)( pitch * scale ) );
-          line += pitch * scale;
+          for ( k = 1; k < scale; k++, line += bit->pitch )
+            memcpy( line + bit->pitch, line, (size_t)( bit->pitch ) );
+          line += bit->pitch;
 
           /* center specks */
           if ( scale > 8 )
-            for ( j = scale / 2; j < width * scale; j += scale )
-              line[j / 8 - scale / 2 * pitch * scale] ^= 0x80 >> ( j & 7 );
+            for ( j = scale / 2; j < bit->width; j += scale )
+              line[j / 8 - scale / 2 * bit->pitch] ^= 0x80 >> ( j & 7 );
         }
         break;
 
       case gr_pixel_mode_gray:
       Gray:
-        for ( i = 0; i < bit->rows; i++ )
+        for ( i = 0; i < r; i++ )
         {
-          for ( j = 0; j < pitch; j++ )
-            memset( line + j * scale, s[i * pitch + j], (size_t)scale );
+          for ( j = 0; j < w; j++ )
+            memset( line + j * scale, s[i * p + j], (size_t)scale );
 
-          for ( k = 1; k < scale; k++, line += pitch * scale )
-            memcpy( line + pitch * scale, line, (size_t)( pitch * scale ) );
-          line += pitch * scale;
+          for ( k = 1; k < scale; k++, line += bit->pitch )
+            memcpy( line + bit->pitch, line, (size_t)( bit->pitch ) );
+          line += bit->pitch;
         }
         break;
 
@@ -459,19 +454,19 @@
       case gr_pixel_mode_lcd2:
         if ( st->work & DO_GRAY_BITMAP )
           goto Gray;
-        for ( i = 0; i < bit->rows; i++ )
+        for ( i = 0; i < r; i++ )
         {
-          for ( j = 0; j < width; j += 3 )
+          for ( j = 0; j < w; j += 3 )
             for ( k = 0; k < scale; k++ )
             {
-              line[j * scale + 3 * k    ] = s[i * pitch + j    ];
-              line[j * scale + 3 * k + 1] = s[i * pitch + j + 1];
-              line[j * scale + 3 * k + 2] = s[i * pitch + j + 2];
+              line[j * scale + 3 * k    ] = s[i * p + j    ];
+              line[j * scale + 3 * k + 1] = s[i * p + j + 1];
+              line[j * scale + 3 * k + 2] = s[i * p + j + 2];
             }
 
-          for ( k = 1; k < scale; k++, line += pitch * scale )
-            memcpy( line + pitch * scale, line, (size_t)( pitch * scale ) );
-          line += pitch * scale;
+          for ( k = 1; k < scale; k++, line += bit->pitch )
+            memcpy( line + bit->pitch, line, (size_t)( bit->pitch ) );
+          line += bit->pitch;
         }
         break;
 
@@ -479,49 +474,43 @@
       case gr_pixel_mode_lcdv2:
         if ( st->work & DO_GRAY_BITMAP )
           goto Gray;
-        for ( i = 0; i < bit->rows; i += 3 )
+        for ( i = 0; i < r; i += 3 )
         {
-          for ( j = 0; j < pitch; j++ )
+          for ( j = 0; j < w; j++ )
           {
             memset( line + j * scale,
-                    s[i * pitch +             j], (size_t)scale );
-            memset( line + j * scale +     pitch * scale,
-                    s[i * pitch +     pitch + j], (size_t)scale );
-            memset( line + j * scale + 2 * pitch * scale,
-                    s[i * pitch + 2 * pitch + j], (size_t)scale );
+                    s[i * p +         j], (size_t)scale );
+            memset( line + j * scale +     bit->pitch,
+                    s[i * p +     p + j], (size_t)scale );
+            memset( line + j * scale + 2 * bit->pitch,
+                    s[i * p + 2 * p + j], (size_t)scale );
           }
 
-          for ( k = 1; k < scale; k++, line += 3 * pitch * scale )
-            memcpy( line + 3 * pitch * scale,
-                    line,
-                    (size_t)( 3 * pitch * scale ) );
-          line += 3 * pitch * scale;
+          for ( k = 1; k < scale; k++, line += 3 * bit->pitch )
+            memcpy( line + 3 * bit->pitch, line, (size_t)( 3 * bit->pitch ) );
+          line += 3 * bit->pitch;
         }
         break;
 
       case gr_pixel_mode_bgra:
-        for ( i = 0; i < bit->rows; i++ )
+        for ( i = 0; i < r; i++ )
         {
           FT_UInt32*  l4 = (FT_UInt32*)line;
-          FT_UInt32*  s4 = (FT_UInt32*)( s + i * pitch );
+          FT_UInt32*  s4 = (FT_UInt32*)( s + i * p );
 
-          for ( j = 0; j < width; j++, s4++ )
+          for ( j = 0; j < w; j++, s4++ )
             for ( k = 0; k < scale; k++, l4++ )
               *l4 = *s4;
 
-          for ( k = 1; k < scale; k++, line += pitch * scale )
-            memcpy( line + pitch * scale, line, (size_t)( pitch * scale ) );
-          line += pitch * scale;
+          for ( k = 1; k < scale; k++, line += bit->pitch )
+            memcpy( line + bit->pitch, line, (size_t)( bit->pitch ) );
+          line += bit->pitch;
         }
         break;
 
       default:
         return;
     }
-
-    bit->rows  *= scale;
-    bit->width *= scale;
-    bit->pitch *= scale;
   }
 
 
