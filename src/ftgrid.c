@@ -610,7 +610,7 @@
         /* extreme zoom needs early crop to avoid memory overallocation */
         delta = oy - top * scale;
         if ( delta < 0 )
-        { 
+        {
           delta /= scale;
           rows  += delta;
           top   += delta;
@@ -620,9 +620,9 @@
 
         delta = oy + ( rows - top ) * scale - display->bitmap->rows;
         if ( delta > 0 )
-        { 
+        {
           delta /= scale;
-          rows  -= delta; 
+          rows  -= delta;
           if ( bitg.pitch < 0 )
             bitg.buffer += delta * bitg.pitch * piy;
         }
@@ -1876,7 +1876,7 @@
       (*argv)++;
     }
     else
-      status.ptsize = 32 * 64 ;
+      status.ptsize = 32 * 64;
 
     if ( have_encoding && !have_index )
       status.Num = 0x20;

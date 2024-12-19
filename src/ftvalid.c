@@ -216,7 +216,7 @@
     if (library_initializer)
     {
       library = library_initializer;
-      return ;
+      return;
     }
 
     fprintf( stderr,

@@ -1482,14 +1482,14 @@
         flags      = FT_LOAD_DEFAULT;
         benchmark( face, &test, max_iter, max_time );
 
-        test.title  = "Load_Advances (Fast)";
-        test.bench  = test_load_advances;
-        flags       = FT_LOAD_TARGET_LIGHT;
+        test.title = "Load_Advances (Fast)";
+        test.bench = test_load_advances;
+        flags      = FT_LOAD_TARGET_LIGHT;
         benchmark( face, &test, max_iter, max_time );
 
-        test.title  = "Load_Advances (Unscaled)";
-        test.bench  = test_load_advances;
-        flags       = FT_LOAD_NO_SCALE;
+        test.title = "Load_Advances (Unscaled)";
+        test.bench = test_load_advances;
+        flags      = FT_LOAD_NO_SCALE;
         benchmark( face, &test, max_iter, max_time );
         break;
 

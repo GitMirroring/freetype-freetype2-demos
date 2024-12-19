@@ -322,7 +322,7 @@
         palette.Count = 256;
 
         format = PixelFormat8bppIndexed;
-        for ( color = 0xFF000000; color >= 0xFF000000 ; color += 0x00010101 )
+        for ( color = 0xFF000000; color >= 0xFF000000; color += 0x00010101 )
           *entry++ = color;
       }
       break;

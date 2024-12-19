@@ -810,7 +810,7 @@
         }
       }
 
-      pixel_size = face->available_sizes[j].y_ppem / 64 ;
+      pixel_size = face->available_sizes[j].y_ppem / 64;
     }
 
     handle->scaler.width  = (FT_UInt)pixel_size;

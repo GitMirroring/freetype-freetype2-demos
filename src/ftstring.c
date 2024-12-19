@@ -806,7 +806,7 @@
       (*argv)++;
     }
     else
-      status.ptsize = 32 * 64 ;
+      status.ptsize = 32 * 64;
   }
 
 
