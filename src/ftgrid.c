@@ -603,9 +603,6 @@
           rows  /= 3;
           piy    = 3;
           break;
-        case gr_pixel_mode_bgra:
-          pix = 4;
-          break;
         default:
           break;
         }
@@ -633,12 +630,23 @@
         bitg.rows  = rows * piy;
 
         delta = ox + left * scale;
-        if ( delta < 0 && bitg.mode != gr_pixel_mode_mono )
+        if ( delta < 0 )
         {
-          delta /= scale;
-          width += delta;
-          left  -= delta;
-          bitg.buffer -= delta * pix;
+          if ( bitg.mode == gr_pixel_mode_mono )
+          {
+            delta /= 8 * scale;
+            width += 8 * delta;
+            left  -= 8 * delta;
+            bitg.buffer -= delta;
+          }
+          else
+          {
+            delta /= scale;
+            width += delta;
+            left  -= delta;
+            bitg.buffer -= bitg.mode == gr_pixel_mode_bgra ? delta * 4
+                                                           : delta * pix;
+          }
         }
 
         delta = ox + ( left + width ) * scale - display->bitmap->width;
@@ -647,9 +655,6 @@
           delta /= scale;
           width -= delta;
         }
-
-        if ( bitg.mode == gr_pixel_mode_bgra )
-          pix = 1;
 
         bitg.width = width * pix;
 
