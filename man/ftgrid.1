@@ -17,16 +17,17 @@ ftgrid \- simple glyph grid viewer
 .SH DESCRIPTION
 .
 .B ftgrid
-displays the glyphs of a font as outlines right before the conversion
-from outlines to pixels take place.
-It also displays the resulting bitmap.
+displays individual font glyphs magnified or reduced from a given size
+to fit the window.
+The glyph outlines are always shown as they appear before rasterization.
+The bitmap and the pixel grid are displayed when magnification permits it.
 It is possible to interactively change hinting and rendering options,
 thus visualizing the applied distortions to the outlines.
 .
 .TP
 .B pt
 The point size for the given resolution.
-If resolution is 72dpi, this directly gives the ppem value (pixels per EM).
+By default at 72dpi, this directly gives the ppem value (pixels per EM).
 .
 .TP
 .B font
