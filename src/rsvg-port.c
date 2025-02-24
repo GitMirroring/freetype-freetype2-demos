@@ -24,7 +24,6 @@
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 #include <stdlib.h>
-#include <math.h>
 
 #include <freetype/freetype.h>
 #include <freetype/ftbbox.h>
@@ -183,16 +182,8 @@
 
     /* General variables. */
     double  x, y;
-    double  xx, xy, yx, yy;
-    double  x0, y0;
     double  width, height;
     double  x_svg_to_out, y_svg_to_out;
-    double  tmpd;
-
-    float metrics_width, metrics_height;
-    float horiBearingX, horiBearingY;
-    float vertBearingX, vertBearingY;
-    float tmpf;
 
     char  *id;
     char  str[32];
@@ -296,23 +287,13 @@
      * then do some maths on this to get the equivalent transformation in
      * SVG coordinates.
      */
-    xx =  (double)document->transform.xx / ( 1 << 16 );
-    xy = -(double)document->transform.xy / ( 1 << 16 );
-    yx = -(double)document->transform.yx / ( 1 << 16 );
-    yy =  (double)document->transform.yy / ( 1 << 16 );
+    transform_matrix.xx =  (double)document->transform.xx / 65536.0;
+    transform_matrix.xy = -(double)document->transform.xy / 65536.0;
+    transform_matrix.yx = -(double)document->transform.yx / 65536.0;
+    transform_matrix.yy =  (double)document->transform.yy / 65536.0;
 
-    x0 =  (double)document->delta.x / 64 *
-            dimension_svg.width / metrics.x_ppem;
-    y0 = -(double)document->delta.y / 64 *
-            dimension_svg.height / metrics.y_ppem;
-
-    /* Cairo stores both transformation and translation in one matrix. */
-    transform_matrix.xx = xx;
-    transform_matrix.yx = yx;
-    transform_matrix.xy = xy;
-    transform_matrix.yy = yy;
-    transform_matrix.x0 = x0;
-    transform_matrix.y0 = y0;
+    transform_matrix.x0 =  (double)document->delta.x / x_svg_to_out / 64.0;
+    transform_matrix.y0 = -(double)document->delta.y / y_svg_to_out / 64.0;
 
     /* Set up a scale transformation to scale up the document to the */
     /* required output size.                                         */
@@ -372,14 +353,12 @@
     state->y = y;
 
     /* Preset the values. */
-    slot->bitmap_left = (FT_Int) state->x;  /* XXX rounding? */
-    slot->bitmap_top  = (FT_Int)-state->y;
+    slot->bitmap_left = (FT_Int) x;  /* XXX rounding? */
+    slot->bitmap_top  = (FT_Int)-y;
 
     /* Do conversion in two steps to avoid 'bad function cast' warning. */
-    tmpd               = ceil( height );
-    slot->bitmap.rows  = (unsigned int)tmpd;
-    tmpd               = ceil( width );
-    slot->bitmap.width = (unsigned int)tmpd;
+    slot->bitmap.rows  = (unsigned int)( height + 0.99999 );
+    slot->bitmap.width = (unsigned int)( width  + 0.99999 );
 
     slot->bitmap.pitch = (int)slot->bitmap.width * 4;
 
@@ -387,30 +366,18 @@
 
     /* Compute all the bearings and set them correctly.  The outline is */
     /* scaled already, we just need to use the bounding box.            */
-    metrics_width  = (float)width;
-    metrics_height = (float)height;
+    slot->metrics.width  = (FT_Pos)( width  * 64.0 );
+    slot->metrics.height = (FT_Pos)( height * 64.0 );
 
-    horiBearingX = (float) state->x;
-    horiBearingY = (float)-state->y;
-
-    vertBearingX = slot->metrics.horiBearingX / 64.0f -
-                     slot->metrics.horiAdvance / 64.0f / 2;
-    vertBearingY = ( slot->metrics.vertAdvance / 64.0f -
-                       slot->metrics.height / 64.0f ) / 2; /* XXX parentheses correct? */
-
-    /* Do conversion in two steps to avoid 'bad function cast' warning. */
-    tmpf                 = roundf( metrics_width * 64 );
-    slot->metrics.width  = (FT_Pos)tmpf;
-    tmpf                 = roundf( metrics_height * 64 );
-    slot->metrics.height = (FT_Pos)tmpf;
-
-    slot->metrics.horiBearingX = (FT_Pos)( horiBearingX * 64 ); /* XXX rounding? */
-    slot->metrics.horiBearingY = (FT_Pos)( horiBearingY * 64 );
-    slot->metrics.vertBearingX = (FT_Pos)( vertBearingX * 64 );
-    slot->metrics.vertBearingY = (FT_Pos)( vertBearingY * 64 );
+    slot->metrics.horiBearingX = (FT_Pos)(  x * 64.0 );
+    slot->metrics.horiBearingY = (FT_Pos)( -y * 64.0 );
 
     if ( slot->metrics.vertAdvance == 0 )
-      slot->metrics.vertAdvance = (FT_Pos)( metrics_height * 1.2f * 64 );
+      slot->metrics.vertAdvance = (FT_Pos)( height * 78.8 );
+
+    slot->metrics.vertBearingX = (FT_Pos)( -width * 32.0 );
+    slot->metrics.vertBearingY = slot->metrics.vertAdvance / 2 -
+                                             (FT_Pos)( height * 32.0 );
 
     /* If a render call is to follow, just destroy the context for the */
     /* recording surface since no more drawing will be done on it.     */
