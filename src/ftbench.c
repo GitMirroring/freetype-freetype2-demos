@@ -1393,7 +1393,7 @@
       goto Exit;
 
     j = printf( "\n"
-                "ftbench results for font `%s'\n",
+                "ftbench results for %s\n",
                 filename ) - 2;
     while ( j-- )
       putchar( '-' );
