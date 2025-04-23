@@ -88,10 +88,6 @@
   } bcharset_t;
 
 
-  static FT_Error
-  get_face( FT_Face*  face );
-
-
   /*
    * Globals
    */
@@ -164,6 +160,7 @@
                             ( first_index >= i && i >= last_index ) ;  \
                             i += incr_index )
 
+  static int             size        = FACE_SIZE;
   static FT_Render_Mode  render_mode = FT_RENDER_MODE_NORMAL;
   static FT_Int32        load_flags  = FT_LOAD_DEFAULT;
 
@@ -177,6 +174,150 @@
 
   static char  ps_hinting_engine_names[2][10] = { "freetype",
                                                   "adobe" };
+
+
+  static FT_Error
+  get_face( FT_Face*  face )
+  {
+    static unsigned char*  memory_file = NULL;
+    static size_t          memory_size;
+    int                    face_index = 0;
+    FT_Error               error;
+
+
+    if ( preload )
+    {
+      if ( !memory_file )
+      {
+        FILE*  file = fopen( filename, "rb" );
+
+
+        if ( file == NULL )
+        {
+          fprintf( stderr, "couldn't find or open `%s'\n", filename );
+
+          return 1;
+        }
+
+        fseek( file, 0, SEEK_END );
+        memory_size = (size_t)ftell( file );
+        fseek( file, 0, SEEK_SET );
+
+        memory_file = (FT_Byte*)malloc( memory_size );
+        if ( memory_file == NULL )
+        {
+          fprintf( stderr,
+                   "couldn't allocate memory to pre-load font file\n" );
+
+          return 1;
+        }
+
+        if ( !fread( memory_file, memory_size, 1, file ) )
+        {
+          fprintf( stderr, "read error\n" );
+          free( memory_file );
+          memory_file = NULL;
+
+          return 1;
+        }
+      }
+
+      error = FT_New_Memory_Face( lib,
+                                  memory_file,
+                                  (FT_Long)memory_size,
+                                  face_index,
+                                  face );
+    }
+    else
+      error = FT_New_Face( lib, filename, face_index, face );
+
+    if ( error )
+      fprintf( stderr, "couldn't load font resource\n");
+
+    /* Set up MM_Var. */
+    if ( requested_cnt != 0 )
+    {
+      unsigned int  n;
+
+
+      error = FT_Get_MM_Var( *face, &multimaster );
+      if ( error )
+      {
+        fprintf( stderr, "couldn't load MultiMaster info\n" );
+        return error;
+      }
+
+      used_num_axes = multimaster->num_axis;
+
+      for ( n = 0; n < used_num_axes; n++ )
+      {
+        FT_Var_Axis*  a = multimaster->axis + n;
+
+
+        design_pos[n] = n < requested_cnt ? requested_pos[n] : a->def;
+
+        if ( design_pos[n] < a->minimum )
+          design_pos[n] = a->minimum;
+        else if ( design_pos[n] > a->maximum )
+          design_pos[n] = a->maximum;
+
+        if ( !FT_IS_SFNT( *face ) )
+          design_pos[n] = FT_RoundFix( design_pos[n] );
+      }
+
+      error = FT_Set_Var_Design_Coordinates( *face,
+                                             used_num_axes,
+                                             design_pos );
+      if ( error )
+      {
+        fprintf( stderr, "couldn't set design coordinates\n" );
+        return error;
+      }
+
+      FT_Done_MM_Var( lib, multimaster );
+    }
+
+    return error;
+  }
+
+
+  static FT_Error
+  set_size( FT_Face  face )
+  {
+    FT_Error  error = FT_Err_Ok;
+
+
+    if ( !FT_IS_SCALABLE( face ) )
+    {
+      int  i, j = 0;
+      int  c, d = abs( (int)face->available_sizes[j].y_ppem - size * 64 );
+
+
+      /* search for the closest available size */
+      for ( i = 1; i < face->num_fixed_sizes; i++ )
+      {
+        c = abs( (int)face->available_sizes[i].y_ppem - size * 64 );
+
+        if ( c < d )
+        {
+          d = c;
+          j = i;
+        }
+      }
+
+      size = face->available_sizes[j].y_ppem / 64;
+
+      error = FT_Select_Size( face, j );
+    }
+
+    else if ( size )
+      error = FT_Set_Pixel_Sizes( face, size, size );
+
+    if ( error )
+      fprintf( stderr, "failed to set pixel size to %u\n", size );
+
+    return error;
+  }
 
 
   /*
@@ -732,6 +873,8 @@
 
     if ( !get_face( &bench_face ) )
     {
+      set_size( bench_face );
+
       FOREACH( i )
       {
         if ( !FT_Load_Glyph( bench_face, (FT_UInt)i, load_flags ) )
@@ -870,111 +1013,6 @@
   }
 
 
-  static FT_Error
-  get_face( FT_Face*  face )
-  {
-    static unsigned char*  memory_file = NULL;
-    static size_t          memory_size;
-    int                    face_index = 0;
-    FT_Error               error;
-
-
-    if ( preload )
-    {
-      if ( !memory_file )
-      {
-        FILE*  file = fopen( filename, "rb" );
-
-
-        if ( file == NULL )
-        {
-          fprintf( stderr, "couldn't find or open `%s'\n", filename );
-
-          return 1;
-        }
-
-        fseek( file, 0, SEEK_END );
-        memory_size = (size_t)ftell( file );
-        fseek( file, 0, SEEK_SET );
-
-        memory_file = (FT_Byte*)malloc( memory_size );
-        if ( memory_file == NULL )
-        {
-          fprintf( stderr,
-                   "couldn't allocate memory to pre-load font file\n" );
-
-          return 1;
-        }
-
-        if ( !fread( memory_file, memory_size, 1, file ) )
-        {
-          fprintf( stderr, "read error\n" );
-          free( memory_file );
-          memory_file = NULL;
-
-          return 1;
-        }
-      }
-
-      error = FT_New_Memory_Face( lib,
-                                  memory_file,
-                                  (FT_Long)memory_size,
-                                  face_index,
-                                  face );
-    }
-    else
-      error = FT_New_Face( lib, filename, face_index, face );
-
-    if ( error )
-      fprintf( stderr, "couldn't load font resource\n");
-
-    /* Set up MM_Var. */
-    if ( requested_cnt != 0 )
-    {
-      unsigned int  n;
-
-
-      error = FT_Get_MM_Var( *face, &multimaster );
-      if ( error )
-      {
-        fprintf( stderr, "couldn't load MultiMaster info\n" );
-        return error;
-      }
-
-      used_num_axes = multimaster->num_axis;
-
-      for ( n = 0; n < used_num_axes; n++ )
-      {
-        FT_Var_Axis*  a = multimaster->axis + n;
-
-
-        design_pos[n] = n < requested_cnt ? requested_pos[n] : a->def;
-
-        if ( design_pos[n] < a->minimum )
-          design_pos[n] = a->minimum;
-        else if ( design_pos[n] > a->maximum )
-          design_pos[n] = a->maximum;
-
-        if ( !FT_IS_SFNT( *face ) )
-          design_pos[n] = FT_RoundFix( design_pos[n] );
-      }
-
-      error = FT_Set_Var_Design_Coordinates( *face,
-                                             used_num_axes,
-                                             design_pos );
-      if ( error )
-      {
-        fprintf( stderr, "couldn't set design coordinates\n" );
-        return error;
-      }
-
-      FT_Done_MM_Var( lib, multimaster );
-    }
-
-    return error;
-  }
-
-
   static void
   usage( void )
   {
@@ -1096,7 +1134,6 @@
 
     unsigned long  max_bytes      = CACHE_SIZE * 1024;
     char*          test_string    = NULL;
-    unsigned int   size           = FACE_SIZE;
     int            max_iter       = 0;
     double         max_time       = BENCH_TIME;
     int            j;
@@ -1312,10 +1349,8 @@
 
 
           /* value 0 is special */
-          if ( sz < 0 )
-            size = 1;
-          else
-            size = (unsigned int)sz;
+          if ( sz >= 0 )
+            size = sz;
         }
         break;
 
@@ -1384,25 +1419,8 @@
       last_index = face->num_glyphs - 1;
     incr_index = last_index > first_index ? 1 : -1;
 
-    if ( size )
-    {
-      if ( FT_IS_SCALABLE( face ) )
-      {
-        if ( FT_Set_Pixel_Sizes( face, size, size ) )
-        {
-          fprintf( stderr, "failed to set pixel size to %u\n", size );
-
-          return 1;
-        }
-      }
-      else
-      {
-        size = (unsigned int)face->available_sizes[0].size >> 6;
-        fprintf( stderr,
-                 "using size of first bitmap strike (%upx)\n", size );
-        FT_Select_Size( face, 0 );
-      }
-    }
+    if ( set_size( face ) )
+      goto Exit;
 
     if ( cache_man )
     {
