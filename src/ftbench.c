@@ -1438,12 +1438,11 @@
 
     printf( "\n"
             "testing glyph indices from %d to %d at %u ppem\n"
-            "number of seconds for each test: %s%g\n",
-            first_index, last_index, size,
-            max_iter ? "at most " : "", max_time );
-    if ( max_iter )
-      printf( "number of iterations for each test: at most %d\n",
-              max_iter );
+            "repeating each test for %g sec",
+            first_index, last_index, size, max_time );
+
+    printf( max_iter ? " or %d time%s at most\n" : "\n",
+            max_iter, max_iter > 1 ? "s" : "" );
 
     printf( "\n"
             "executing tests:\n" );
