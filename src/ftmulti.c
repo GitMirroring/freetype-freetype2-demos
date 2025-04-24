@@ -183,7 +183,7 @@
     {
       requested_pos[requested_cnt] = (FT_Fixed)( strtod( s, &s ) * 65536.0 );
 
-      while ( *s == ',' || *s == ' ' )
+      if ( *s == ',' )
         ++s;
     }
   }
