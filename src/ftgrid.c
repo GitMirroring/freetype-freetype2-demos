@@ -1764,7 +1764,7 @@
       "            Common values: `unic' (Unicode), `symb' (symbol),\n"
       "            `ADOB' (Adobe standard), `ADBC' (Adobe custom),\n"
       "            or a numeric charmap index.\n"
-      "  -a \"axis1 axis2 ...\"\n"
+      "  -a axis1,axis2,...\n"
       "            Specify the design coordinates for each\n"
       "            Multiple Master axis at start-up.  Implies `-n'.\n"
       "  -n        Don't display named instances of variation fonts.\n"
@@ -1806,7 +1806,7 @@
           {
             pos[cnt] = (FT_Fixed)( strtod( s, &s ) * 65536.0 );
 
-            while ( *s == ' ' )
+            while ( *s == ',' || *s == ' ' )
               ++s;
           }
 

@@ -1051,7 +1051,7 @@
       "\n"
       "Usage: ftbench [options] fontname\n"
       "\n"
-      "  -a \"axis1 axis2 ...\"\n"
+      "  -a axis1,axis2,...\n"
       "            Specify the design coordinates for each, if any,\n"
       "            Multiple Master axis at start-up.\n"
       "  -C        Compare with cached version (if available).\n"
@@ -1119,7 +1119,7 @@
     {
       requested_pos[requested_cnt] = (FT_Fixed)( strtod( s, &s ) * 65536.0 );
 
-      while ( *s == ' ' || *s == ',' )
+      while ( *s == ',' || *s == ' ' )
         ++s;
     }
   }

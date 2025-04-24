@@ -183,7 +183,7 @@
     {
       requested_pos[requested_cnt] = (FT_Fixed)( strtod( s, &s ) * 65536.0 );
 
-      while ( *s==' ' )
+      while ( *s == ',' || *s == ' ' )
         ++s;
     }
   }
@@ -888,7 +888,7 @@
       "               `ADOB' (Adobe standard), `ADBC' (Adobe custom).\n"
       "  -r R         Use resolution R dpi (default: 72dpi).\n"
       "  -f index     Specify first glyph index to display.\n"
-      "  -a \"axis1 axis2 ...\"\n"
+      "  -a axis1,axis2,...\n"
       "               Specify the design coordinates for each\n"
       "               variation axis at start-up.\n"
       "\n"
