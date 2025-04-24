@@ -815,7 +815,7 @@
   {
     FT_UInt   idx;
     FT_ULong  charcode;
-    int       done;
+    int       done = 0;
 
     FT_UNUSED( user_data );
 
@@ -823,10 +823,12 @@
     TIMER_START( timer );
 
     charcode = FT_Get_First_Char( face, &idx );
-    done = ( idx != 0 );
 
     while ( idx != 0 )
+    {
       charcode = FT_Get_Next_Char( face, charcode, &idx );
+      done++;
+    }
 
     TIMER_STOP( timer );
 
