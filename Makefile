@@ -171,6 +171,10 @@ else
     MATH := -lm
   endif
 
+  ifeq ($(PLATFORM),ansi)
+    MATH := -lm
+  endif
+
   # The default variables used to link the executables.  These can
   # be redefined for platform-specific stuff.
   #
