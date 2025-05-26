@@ -497,7 +497,7 @@
       count = first_index - last_index + 1;
     }
 
-    advances = (FT_Fixed *)calloc( sizeof ( FT_Fixed ), (size_t)count );
+    advances = (FT_Fixed *)calloc( (size_t)count, sizeof ( FT_Fixed ) );
 
     TIMER_START( timer );
 
