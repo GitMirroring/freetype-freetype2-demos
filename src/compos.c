@@ -43,8 +43,8 @@
 
   static void  Usage( char*  name )
   {
-    printf( "compos: test FT_LOAD_NO_RECURSE load flag - www.freetype.org\n" );
-    printf( "------------------------------------------------------------\n" );
+    printf( "compos: test FT_LOAD_NO_RECURSE load flag - freetype.org\n" );
+    printf( "--------------------------------------------------------\n" );
     printf( "\n" );
     printf( "Usage: %s fontname[.ttf|.ttc] [fontname2..]\n", name );
     printf( "\n" );

@@ -5,7 +5,7 @@
  *    basic type definitions
  *
  *  Copyright (C) 1999-2024 by
- *  The FreeType Development Team - www.freetype.org
+ *  The FreeType Development Team - https://freetype.org
  *
  *
  *
