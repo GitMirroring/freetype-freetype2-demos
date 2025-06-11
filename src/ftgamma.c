@@ -19,7 +19,7 @@
 
   static grBitmap   bit1 = { 300, 600, 600, gr_pixel_mode_gray, 256, NULL };
   static grBitmap   bit2 = { 288, 600, 600, gr_pixel_mode_gray, 256, NULL };
-  static int        status = 0;
+  static int        status = 1;
 
 
   static void
@@ -351,7 +351,7 @@
 
     case grKeyTab:
       status++;
-      if ( status > 2 )
+      if ( status > 3 )
         status = 0;
       break;
 
@@ -412,9 +412,15 @@
         break;
       case 2:
         grWriteCellString( display->bitmap, x - 84, y - 165,
-                           "Subpixel  Anti-Aliasing", display->fore_color );
+                           "LCD (RGB) Anti-Aliasing", display->fore_color );
         Render_Bitmap( display->bitmap, &bit2, x - 300, y - 144,
                        display->fore_color, 1 );
+        break;
+      case 3:
+        grWriteCellString( display->bitmap, x - 84, y - 165,
+                           "LCD (BGR) Anti-Aliasing", display->fore_color );
+        Render_Bitmap( display->bitmap, &bit2, x - 300, y - 144,
+                       display->fore_color, 11 );
         break;
       }
 
