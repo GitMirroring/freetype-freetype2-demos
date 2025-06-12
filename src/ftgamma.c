@@ -177,6 +177,7 @@
     grLn();
     grWriteln( "space       cycle through color");
     grWriteln( "tab         alternate patterns");
+    grWriteln( "0,1,2,3     select a pattern");
     grWriteln( "G           show gamma ramp" );
     grLn();
     grLn();
@@ -347,6 +348,13 @@
 
     case grKeySpace:
       event_color_change();
+      break;
+
+    case grKEY( '0' ):
+    case grKEY( '1' ):
+    case grKEY( '2' ):
+    case grKEY( '3' ):
+      status = event.key - '0';
       break;
 
     case grKeyTab:
