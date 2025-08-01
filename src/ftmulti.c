@@ -386,9 +386,10 @@
   static FT_Error
   Render_All( int  first_glyph )
   {
-    int  start_x = 18 * 8;
-    int  start_y = size->metrics.y_ppem * 4 / 5 + HEADER_HEIGHT * 3;
-    int  step_y  = size->metrics.y_ppem + 10;
+    int  start_x = num_shown_axes ? 18 * 8 : 12;
+    int  start_y = ( size->metrics.ascender - size->metrics.descender ) / 64
+                   + HEADER_HEIGHT * 3;
+    int  step_y  = size->metrics.height / 64 + 4;
     int  x, y, w, i;
 
 
@@ -440,9 +441,10 @@
   static FT_Error
   Render_Text( int  first_glyph )
   {
-    int  start_x = 18 * 8;
-    int  start_y = size->metrics.y_ppem * 4 / 5 + HEADER_HEIGHT * 3;
-    int  step_y  = size->metrics.y_ppem + 10;
+    int  start_x = num_shown_axes ? 18 * 8 : 12;
+    int  start_y = ( size->metrics.ascender - size->metrics.descender ) / 64
+                   + HEADER_HEIGHT * 3;
+    int  step_y  = size->metrics.height / 64 + 4;
     int  x, y, w, i;
 
     const unsigned char*  p;
@@ -1044,12 +1046,19 @@
         goto Display_Font;
     }
 
+    font_format = FT_Get_Font_Format( face );
+    num_glyphs  = face->num_glyphs;
+    glyph       = face->glyph;
+    size        = face->size;
+    file_loaded = 1;
+
     /* retrieve multiple master information */
     FT_Done_MM_Var( library, multimaster );
     error = FT_Get_MM_Var( face, &multimaster );
     if ( error )
     {
-      multimaster = NULL;
+      used_num_axis = 0;
+      multimaster   = NULL;
       goto Display_Font;
     }
 
@@ -1098,13 +1107,6 @@
     error = FT_Set_Var_Design_Coordinates( face, used_num_axis, design_pos );
     if ( error )
       goto Display_Font;
-
-    file_loaded = 1;
-
-    font_format = FT_Get_Font_Format( face );
-    num_glyphs  = face->num_glyphs;
-    glyph       = face->glyph;
-    size        = face->size;
 
   Display_Font:
     /* initialize graphics if needed */
@@ -1162,9 +1164,13 @@
                        FT_Get_Postscript_Name( face ) );
         grWriteCellString( bit, 0, 2 * HEADER_HEIGHT, Header, fore_color );
 
-        strbuf_reset( header );
-        strbuf_format( header, "axes (\361 %.1f%%):", 100.0 * increment );
-        grWriteCellString( bit, 0, 4 * HEADER_HEIGHT, Header, fore_color );
+        if ( num_shown_axes > 0 )
+        {
+          strbuf_reset( header );
+          strbuf_format( header, "axes (\361 %.1f%%):", 100.0 * increment );
+          grWriteCellString( bit, 0, 4 * HEADER_HEIGHT, Header, fore_color );
+        }
+
         for ( n = 0; n < num_shown_axes; n++ )
         {
           int  axis = shown_axes[n];
@@ -1218,8 +1224,8 @@
       }
       else
         strbuf_format( header,
-                       "%.100s: not an MM font file, or could not be opened",
-                       ft_basename( argv[file] ) );
+                       "%.100s: could not be opened at %dpt",
+                       ft_basename( argv[file] ), ptsize );
 
       grWriteCellString( bit, 0, HEADER_HEIGHT, Header, fore_color );
 
