@@ -1152,17 +1152,18 @@
                        face->family_name,
                        face->style_name,
                        ft_basename( argv[file] ) );
+        grWriteCellString( bit, 0, 0, Header, fore_color );
 
         if ( !new_header )
+        {
+          strbuf_reset( header );
+          strbuf_format( header, "PS name: %s",
+                         FT_Get_Postscript_Name( face ) );
           new_header = Header;
+        }
 
-        grWriteCellString( bit, 0, 0, new_header, fore_color );
+        grWriteCellString( bit, 0, 2 * HEADER_HEIGHT, new_header, fore_color );
         new_header = NULL;
-
-        strbuf_reset( header );
-        strbuf_format( header, "PS name: %s",
-                       FT_Get_Postscript_Name( face ) );
-        grWriteCellString( bit, 0, 2 * HEADER_HEIGHT, Header, fore_color );
 
         if ( num_shown_axes > 0 )
         {
