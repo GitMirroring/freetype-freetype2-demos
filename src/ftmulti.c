@@ -121,6 +121,9 @@
   static int           shown_axes[MAX_MM_AXES];  /* array of axis indices */
   static unsigned int  num_shown_axes;
 
+  static FT_UInt  num_named;
+  static FT_UInt  idx_named;
+
 
 #define DEBUGxxx
 
@@ -564,6 +567,8 @@
     grWriteln( "F9, F10     adjust index by 256" );
     grWriteln( "F11, F12    adjust index by 4096" );
     grLn();
+    grWriteln( "[, ]        previous/next named instance" );
+    grLn();
     grWriteln( "a, A        adjust axis 0" );
     grWriteln( "b, B        adjust axis 1" );
     grWriteln( "..." );
@@ -691,6 +696,26 @@
     case grKEY( '-' ):
       if ( increment > 0.01 )
         increment *= 0.5;
+      break;
+
+    case grKEY( '[' ):
+      if ( num_named )
+      {
+        if ( --idx_named >= num_named )
+           idx_named = num_named - 1;
+        FT_Set_Named_Instance( face, idx_named );
+        FT_Get_Var_Design_Coordinates( face, used_num_axis, design_pos );
+      }
+      break;
+
+    case grKEY( ']' ):
+      if ( num_named )
+      {
+        if ( ++idx_named >= num_named )
+           idx_named = 0;
+        FT_Set_Named_Instance( face, idx_named );
+        FT_Get_Var_Design_Coordinates( face, used_num_axis, design_pos );
+      }
       break;
 
     case grKEY( 'a' ):
@@ -1057,10 +1082,15 @@
     error = FT_Get_MM_Var( face, &multimaster );
     if ( error )
     {
+      num_named     = 0;
       used_num_axis = 0;
       multimaster   = NULL;
       goto Display_Font;
     }
+
+    num_named = !FT_IS_SFNT( face ) ? 1  /* for default MM */
+                                    : (FT_UInt)( face->style_flags >> 16 );
+    FT_Get_Default_Named_Instance( face, &idx_named );
 
     /* if the user specified a position, use it, otherwise  */
     /* set the current position to the default of each axis */
