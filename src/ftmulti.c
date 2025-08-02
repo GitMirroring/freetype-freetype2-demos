@@ -701,8 +701,8 @@
     case grKEY( '[' ):
       if ( num_named )
       {
-        if ( --idx_named >= num_named )
-           idx_named = num_named - 1;
+        if ( --idx_named == 0 )
+          idx_named = num_named;
         FT_Set_Named_Instance( face, idx_named );
         FT_Get_Var_Design_Coordinates( face, used_num_axis, design_pos );
       }
@@ -711,8 +711,8 @@
     case grKEY( ']' ):
       if ( num_named )
       {
-        if ( ++idx_named >= num_named )
-           idx_named = 0;
+        if ( ++idx_named > num_named )
+          idx_named = 1;
         FT_Set_Named_Instance( face, idx_named );
         FT_Get_Var_Design_Coordinates( face, used_num_axis, design_pos );
       }
@@ -1088,9 +1088,16 @@
       goto Display_Font;
     }
 
-    num_named = !FT_IS_SFNT( face ) ? 1  /* for default MM */
-                                    : (FT_UInt)( face->style_flags >> 16 );
-    FT_Get_Default_Named_Instance( face, &idx_named );
+    if ( FT_IS_SFNT( face ) )
+    {
+      num_named = (FT_UInt)( face->style_flags >> 16 );
+      FT_Get_Default_Named_Instance( face, &idx_named );
+    }
+    else
+    {
+      num_named = 1;
+      idx_named = 1;
+    }
 
     /* if the user specified a position, use it, otherwise  */
     /* set the current position to the default of each axis */
