@@ -1082,9 +1082,9 @@
     error = FT_Get_MM_Var( face, &multimaster );
     if ( error )
     {
-      num_named     = 0;
-      used_num_axis = 0;
-      multimaster   = NULL;
+      num_named      = 0;
+      num_shown_axes = 0;
+      multimaster    = NULL;
       goto Display_Font;
     }
 
