@@ -386,7 +386,7 @@
   }
 
 
-  static FT_Error
+  static int
   Render_All( int  first_glyph )
   {
     int  start_x = num_shown_axes ? 18 * 8 : 12;
@@ -425,7 +425,7 @@
           y += step_y;
 
           if ( y >= bit->rows - size->metrics.y_ppem / 5 )
-            return FT_Err_Ok;
+            break;
         }
 
         Render_Glyph( x, y );
@@ -437,11 +437,11 @@
       i++;
     }
 
-    return FT_Err_Ok;
+    return i - first_glyph;
   }
 
 
-  static FT_Error
+  static int
   Render_Text( int  first_glyph )
   {
     int  start_x = num_shown_axes ? 18 * 8 : 12;
@@ -490,7 +490,7 @@
           y += step_y;
 
           if ( y >= bit->rows - size->metrics.y_ppem / 5 )
-            return FT_Err_Ok;
+            break;
         }
 
         Render_Glyph( x, y );
@@ -503,7 +503,7 @@
       p++;
     }
 
-    return FT_Err_Ok;
+    return 0;
   }
 
 
@@ -1183,14 +1183,17 @@
 
       if ( file_loaded )
       {
+        int  count;
+
+
         switch ( render_mode )
         {
         case 0:
-          Render_Text( Num );
+          count = Render_Text( Num );
           break;
 
         default:
-          Render_All( Num );
+          count = Render_All( Num );
         }
 
         strbuf_format( header, "%.50s %.50s | %.100s",
@@ -1262,13 +1265,13 @@
                          : "TrueType (v40)" );
 
           strbuf_reset( header );
-          strbuf_format(
-            header,
-            "size: %dpt, first glyph: %d, format: %s",
-            ptsize,
-            Num,
-            format_str );
-        }
+          strbuf_format( header, "%s, size: %d %s",
+                         format_str,
+                         ptsize,
+                         res == 72 ? "ppem" : "pt" );
+          if ( count )
+            strbuf_format( header, ", glyphs: %d-%d", Num, Num + count - 1 );
+         }
       }
       else
         strbuf_format( header,
