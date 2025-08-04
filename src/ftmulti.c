@@ -1035,9 +1035,6 @@
     argc -= optind;
     argv += optind;
 
-    if ( argc == 0 )
-      usage( execname );
-
     if ( argc > 1 && sscanf( argv[0], "%d", &orig_ptsize ) == 1 )
     {
       argc--;
@@ -1045,6 +1042,11 @@
     }
     else
       orig_ptsize = 64;
+
+    if ( argc == 0 )
+      usage( execname );
+
+    Init_Display();
 
     file       = 0;
     face_index = 0;
@@ -1156,10 +1158,6 @@
       goto Display_Font;
 
   Display_Font:
-    /* initialize graphics if needed */
-    if ( !surface )
-      Init_Display();
-
     if ( file_loaded )
     {
       Fail = 0;
