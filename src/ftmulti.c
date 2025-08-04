@@ -930,10 +930,11 @@
   main( int    argc,
         char*  argv[] )
   {
-    int    orig_ptsize, file;
-    int    first_glyph = 0;
-    int    option;
-    int    file_loaded;
+    FT_Long  face_index;
+    int      orig_ptsize, file;
+    int      first_glyph = 0;
+    int      option;
+    int      file_loaded;
 
     unsigned int  n;
 
@@ -1045,19 +1046,28 @@
     else
       orig_ptsize = 64;
 
-    file = 0;
+    file       = 0;
+    face_index = 0;
 
-  NewFile:
+  NewFace:
     ptsize      = orig_ptsize;
     hinted      = 1;
     file_loaded = 0;
 
     /* Load face */
-    error = FT_New_Face( library, argv[file], 0, &face );
+    error = FT_New_Face( library, argv[file], face_index, &face );
     if ( error )
     {
       face = NULL;
       goto Display_Font;
+    }
+
+    if ( face_index < 0 )
+    {
+      face_index = face->num_faces - 1;
+
+      FT_Done_Face( face );
+      goto NewFace;
     }
 
     error = Reset_Scale( ptsize );
@@ -1185,10 +1195,12 @@
           Render_All( Num );
         }
 
-        strbuf_format( header, "%.50s %.50s (file %.100s)",
+        strbuf_format( header, "%.50s %.50s | %.100s",
                        face->family_name,
                        face->style_name,
                        ft_basename( argv[file] ) );
+        if ( face->num_faces > 1 )
+          strbuf_format( header, ":%ld", face_index );
         grWriteCellString( bit, 0, 0, Header, fore_color );
 
         if ( !new_header )
@@ -1272,33 +1284,37 @@
 
       if ( key == grKEY( '.' ) )
       {
-        if ( file_loaded )
-          FT_Done_Face( face );
-
-        if ( file < argc - 1 )
+        if ( face && face_index < face->num_faces - 1 )
+          face_index++;
+        else if ( file < argc - 1 )
+        {
+          face_index = 0;
           file++;
+        }
 
-        goto NewFile;
+        FT_Done_Face( face );
+        goto NewFace;
       }
 
       if ( key == grKEY( ',' ) )
       {
-        if ( file_loaded )
-          FT_Done_Face( face );
-
-        if ( file > 0 )
+        if ( face_index > 0 )
+          face_index--;
+        else if ( file > 0 )
+        {
+          face_index = -1;
           file--;
+        }
 
-        goto NewFile;
+        FT_Done_Face( face );
+        goto NewFace;
       }
 
       if ( key == grKeyF6 )
       {
         /* enforce reloading */
-        if ( file_loaded )
-          FT_Done_Face( face );
-
-        goto NewFile;
+        FT_Done_Face( face );
+        goto NewFace;
       }
     }
 
