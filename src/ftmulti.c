@@ -418,7 +418,9 @@
         }
 #endif
 
-        w = ( ( glyph->metrics.horiAdvance + 32 ) >> 6 ) + 1;
+        w = glyph->metrics.horiAdvance ? glyph->metrics.horiAdvance >> 6
+                                       : size->metrics.x_ppem / 2;
+
         if ( x + w > bit->width - 4 )
         {
           x  = start_x;
@@ -428,8 +430,15 @@
             break;
         }
 
+        /* half-step for zero-width glyphs */
+        if ( glyph->metrics.horiAdvance == 0 )
+        {
+           w /= 2;
+           x += w;
+        }
+
         Render_Glyph( x, y );
-        x += w;
+        x += w + 1;
       }
       else
         Fail++;
