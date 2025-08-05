@@ -6,7 +6,7 @@
 /*  D. Turner, R.Wilhelm, and W. Lemberg                                    */
 /*                                                                          */
 /*                                                                          */
-/*  FTMulti- a simple multiple masters font viewer                          */
+/*  FTMulti - a simple variable font viewer                                 */
 /*                                                                          */
 /*  Press ? when running this program to have a list of key-bindings        */
 /*                                                                          */
@@ -390,9 +390,8 @@
   Render_All( int  first_glyph )
   {
     int  start_x = num_shown_axes ? 18 * 8 : 12;
-    int  start_y = ( size->metrics.ascender - size->metrics.descender ) / 64
-                   + HEADER_HEIGHT * 3;
-    int  step_y  = size->metrics.height / 64 + 4;
+    int  start_y = size->metrics.y_ppem + HEADER_HEIGHT * 4;
+    int  step_y  = size->metrics.height / 64 + 1;
     int  x, y, w, i;
 
 
@@ -454,9 +453,8 @@
   Render_Text( int  first_glyph )
   {
     int  start_x = num_shown_axes ? 18 * 8 : 12;
-    int  start_y = ( size->metrics.ascender - size->metrics.descender ) / 64
-                   + HEADER_HEIGHT * 3;
-    int  step_y  = size->metrics.height / 64 + 4;
+    int  start_y = size->metrics.y_ppem + HEADER_HEIGHT * 4;
+    int  step_y  = size->metrics.height / 64 + 1;
     int  x, y, w, i;
 
     const unsigned char*  p;
@@ -543,7 +541,7 @@
     grGotobitmap( bit );
 
     snprintf( buf, sizeof ( buf ),
-              "FreeType MM Glyph Viewer -"
+              "FreeType Glyph Variations Viewer -"
                 " part of the FreeType %s test suite",
               version );
 
