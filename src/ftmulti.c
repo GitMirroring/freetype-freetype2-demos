@@ -40,20 +40,6 @@
 #define  MAXPTSIZE    500               /* dtp */
 #define  MAX_MM_AXES   16
 
-  /* definitions in ftcommon.c */
-  unsigned int
-  FTDemo_Event_Cff_Hinting_Engine_Change( FT_Library     library,
-                                          unsigned int*  current,
-                                          unsigned int   delta );
-  unsigned int
-  FTDemo_Event_Type1_Hinting_Engine_Change( FT_Library     library,
-                                            unsigned int*  current,
-                                            unsigned int   delta );
-  unsigned int
-  FTDemo_Event_T1cid_Hinting_Engine_Change( FT_Library     library,
-                                            unsigned int*  current,
-                                            unsigned int   delta );
-
 
   static char         Header[256];
   static const char*  new_header = NULL;
@@ -70,15 +56,6 @@
   static FT_GlyphSlot  glyph;        /* the glyph slot              */
 
   static unsigned long  encoding = FT_ENCODING_NONE;
-
-  static unsigned int  cff_hinting_engine;
-  static unsigned int  type1_hinting_engine;
-  static unsigned int  t1cid_hinting_engine;
-  static unsigned int  tt_interpreter_versions[2];
-  static unsigned int  num_tt_interpreter_versions;
-  static unsigned int  tt_interpreter_version_idx;
-
-  static const char*  font_format;
 
   static FT_Error      error;        /* error returned by FreeType? */
 
@@ -594,15 +571,53 @@
 
 
   static void
-  tt_interpreter_version_change( void )
+  hinting_engine_change( void )
   {
-    tt_interpreter_version_idx += 1;
-    tt_interpreter_version_idx %= num_tt_interpreter_versions;
+    const FT_String*  module_name = FT_FACE_DRIVER_NAME( face );
+    FT_UInt           prop = 0;
 
-    FT_Property_Set( library,
-                     "truetype",
-                     "interpreter-version",
-                     &tt_interpreter_versions[tt_interpreter_version_idx] );
+
+    if ( !FT_Property_Get( library, module_name,
+                                    "interpreter-version", &prop ) )
+    {
+      switch ( prop )
+      {
+      S1:
+      case TT_INTERPRETER_VERSION_35:
+        prop = TT_INTERPRETER_VERSION_40;
+        if ( !FT_Property_Set( library, module_name,
+                                        "interpreter-version", &prop ) )
+          break;
+        /* fall through */
+      case TT_INTERPRETER_VERSION_40:
+        prop = TT_INTERPRETER_VERSION_35;
+        if ( !FT_Property_Set( library, module_name,
+                                        "interpreter-version", &prop ) )
+          break;
+        goto S1;
+      }
+    }
+
+    else if ( !FT_Property_Get( library, module_name,
+                                         "hinting-engine", &prop ) )
+    {
+      switch ( prop )
+      {
+      S2:
+      case FT_HINTING_FREETYPE:
+        prop = FT_HINTING_ADOBE;
+        if ( !FT_Property_Set( library, module_name,
+                                        "hinting-engine", &prop ) )
+          break;
+        /* fall through */
+      case FT_HINTING_ADOBE:
+        prop = FT_HINTING_FREETYPE;
+        if ( !FT_Property_Set( library, module_name,
+                                        "hinting-engine", &prop ) )
+          break;
+        goto S2;
+      }
+    }
   }
 
 
@@ -660,26 +675,11 @@
 
     case grKeyF5:
       hinted     = !hinted;
-      new_header = hinted ? "glyph hinting is now active"
-                          : "glyph hinting is now ignored";
       break;
 
     case grKeyF6:
-      if ( !strcmp( font_format, "CFF" ) )
-        FTDemo_Event_Cff_Hinting_Engine_Change( library,
-                                                &cff_hinting_engine,
-                                                1);
-      else if ( !strcmp( font_format, "Type 1" ) )
-        FTDemo_Event_Type1_Hinting_Engine_Change( library,
-                                                  &type1_hinting_engine,
-                                                  1);
-      else if ( !strcmp( font_format, "CID Type 1" ) )
-        FTDemo_Event_T1cid_Hinting_Engine_Change( library,
-                                                  &t1cid_hinting_engine,
-                                                  1);
-      else if ( !strcmp( font_format, "TrueType" ) )
-        tt_interpreter_version_change();
-      break;
+      hinting_engine_change();
+      return (int)event.key;
 
     case grKeyTab:
       antialias  = !antialias;
@@ -944,10 +944,6 @@
     int      file_loaded;
 
     unsigned int  n;
-
-    unsigned int  dflt_tt_interpreter_version;
-    unsigned int  versions[2] = { TT_INTERPRETER_VERSION_35,
-                                  TT_INTERPRETER_VERSION_40 };
     const char*   execname = ft_basename( argv[0] );
 
 
@@ -955,36 +951,6 @@
     error = FT_Init_FreeType( &library );
     if ( error )
       PanicZ( "Could not initialize FreeType library" );
-
-    /* get the default value as compiled into FreeType */
-    FT_Property_Get( library,
-                     "cff",
-                     "hinting-engine", &cff_hinting_engine );
-    FT_Property_Get( library,
-                     "type1",
-                     "hinting-engine", &type1_hinting_engine );
-    FT_Property_Get( library,
-                     "t1cid",
-                     "hinting-engine", &t1cid_hinting_engine );
-
-    /* collect all available versions, then set again the default */
-    FT_Property_Get( library,
-                     "truetype",
-                     "interpreter-version", &dflt_tt_interpreter_version );
-    for ( n = 0; n < 2; n++ )
-    {
-      error = FT_Property_Set( library,
-                               "truetype",
-                               "interpreter-version", &versions[n] );
-      if ( !error )
-        tt_interpreter_versions[
-          num_tt_interpreter_versions++] = versions[n];
-      if ( versions[n] == dflt_tt_interpreter_version )
-        tt_interpreter_version_idx = n;
-    }
-    FT_Property_Set( library,
-                     "truetype",
-                     "interpreter-version", &dflt_tt_interpreter_version );
 
     while ( 1 )
     {
@@ -1090,7 +1056,6 @@
         goto Display_Font;
     }
 
-    font_format = FT_Get_Font_Format( face );
     num_glyphs  = face->num_glyphs;
     glyph       = face->glyph;
     size        = face->size;
@@ -1248,37 +1213,54 @@
         }
 
         {
-          unsigned int  tt_ver = tt_interpreter_versions[
-                                   tt_interpreter_version_idx];
+          const FT_String*  module_name = FT_FACE_DRIVER_NAME( face );
+          const char*       hinting_engine = "";
+          FT_UInt           prop = 0;
 
-          const char*  format_str = NULL;
 
+          if ( !FT_IS_SCALABLE( face ) )
+            hinting_engine = " bitmap";
 
-          if ( !strcmp( font_format, "CFF" ) )
-            format_str = ( cff_hinting_engine == FT_HINTING_FREETYPE
-                         ? "CFF (FreeType)"
-                         : "CFF (Adobe)" );
-          else if ( !strcmp( font_format, "Type 1" ) )
-            format_str = ( type1_hinting_engine == FT_HINTING_FREETYPE
-                         ? "Type 1 (FreeType)"
-                         : "Type 1 (Adobe)" );
-          else if ( !strcmp( font_format, "CID Type 1" ) )
-            format_str = ( t1cid_hinting_engine == FT_HINTING_FREETYPE
-                         ? "CID Type 1 (FreeType)"
-                         : "CID Type 1 (Adobe)" );
-          else if ( !strcmp( font_format, "TrueType" ) )
-            format_str = ( tt_ver == TT_INTERPRETER_VERSION_35
-                         ? "TrueType (v35)"
-                         : "TrueType (v40)" );
+          else if ( !hinted )
+            hinting_engine = " unhinted";
+
+          else if ( !FT_Property_Get( library, module_name,
+                                      "interpreter-version", &prop ) )
+          {
+            switch ( prop )
+            {
+            case TT_INTERPRETER_VERSION_35:
+              hinting_engine = "\372v35";
+              break;
+            case TT_INTERPRETER_VERSION_40:
+              hinting_engine = "\372v40";
+              break;
+            }
+          }
+
+          else if ( !FT_Property_Get( library, module_name,
+                                      "hinting-engine", &prop ) )
+          {
+            switch ( prop )
+            {
+            case FT_HINTING_FREETYPE:
+              hinting_engine = "\372FT";
+              break;
+            case FT_HINTING_ADOBE:
+              hinting_engine = "\372Adobe";
+              break;
+            }
+          }
 
           strbuf_reset( header );
-          strbuf_format( header, "%s, size: %d %s",
-                         format_str,
+          strbuf_format( header, "%s%s, size: %d %s",
+                         module_name,
+                         hinting_engine,
                          ptsize,
                          res == 72 ? "ppem" : "pt" );
           if ( count )
             strbuf_format( header, ", glyphs: %d-%d", Num, Num + count - 1 );
-         }
+        }
       }
       else
         strbuf_format( header,
