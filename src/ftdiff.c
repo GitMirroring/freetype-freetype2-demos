@@ -178,13 +178,6 @@
     unsigned char  filter_weights[5];
     int            fw_index;
 
-    unsigned int   cff_hinting_engine;
-    unsigned int   type1_hinting_engine;
-    unsigned int   t1cid_hinting_engine;
-    unsigned int   tt_interpreter_versions[2];
-    int            num_tt_interpreter_versions;
-    int            tt_interpreter_version_idx;
-
   } ColumnStateRec, *ColumnState;
 
 
@@ -225,20 +218,6 @@
                      Display      display,
                      FT_Library   library )
   {
-    FT_UInt  cff_hinting_engine;
-    FT_UInt  type1_hinting_engine;
-    FT_UInt  t1cid_hinting_engine;
-
-    unsigned int  tt_interpreter_versions[2]  = { 0, 0 };
-    int           num_tt_interpreter_versions = 0;
-    int           tt_interpreter_version_idx  = 0;
-
-    unsigned int  dflt_tt_interpreter_version;
-    int           i;
-    unsigned int  versions[2] = { TT_INTERPRETER_VERSION_35,
-                                  TT_INTERPRETER_VERSION_40 };
-
-
     memset( state, 0, sizeof ( *state ) );
 
     state->library = library;
@@ -251,53 +230,12 @@
     state->char_size    = 16;
     state->display      = display[0];
 
-    /* get the default value as compiled into FreeType */
-    FT_Property_Get( library,
-                     "cff",
-                     "hinting-engine", &cff_hinting_engine );
-    FT_Property_Get( library,
-                     "type1",
-                     "hinting-engine", &type1_hinting_engine );
-    FT_Property_Get( library,
-                     "t1cid",
-                     "hinting-engine", &t1cid_hinting_engine );
-
-    /* collect all available versions, then set again the default */
-    FT_Property_Get( library,
-                     "truetype",
-                     "interpreter-version", &dflt_tt_interpreter_version );
-    for ( i = 0; i < 2; i++ )
-    {
-      error = FT_Property_Set( library,
-                               "truetype",
-                               "interpreter-version", &versions[i] );
-      if ( !error )
-        tt_interpreter_versions[num_tt_interpreter_versions++] = versions[i];
-      if ( versions[i] == dflt_tt_interpreter_version )
-        tt_interpreter_version_idx = i;
-    }
-    FT_Property_Set( library,
-                     "truetype",
-                     "interpreter-version", &dflt_tt_interpreter_version );
-
     state->columns[0].use_cboxes             = 0;
     state->columns[0].use_kerning            = 1;
     state->columns[0].use_deltas             = 1;
     state->columns[0].use_lcd_filter         = 1;
     state->columns[0].lcd_filter             = FT_LCD_FILTER_DEFAULT;
     state->columns[0].hint_mode              = HINT_MODE_BYTECODE;
-    state->columns[0].cff_hinting_engine     = cff_hinting_engine;
-    state->columns[0].type1_hinting_engine   = type1_hinting_engine;
-    state->columns[0].t1cid_hinting_engine   = t1cid_hinting_engine;
-
-    state->columns[0].tt_interpreter_versions[0] =
-      tt_interpreter_versions[0];
-    state->columns[0].tt_interpreter_versions[1] =
-      tt_interpreter_versions[1];
-    state->columns[0].num_tt_interpreter_versions =
-      num_tt_interpreter_versions;
-    state->columns[0].tt_interpreter_version_idx =
-      tt_interpreter_version_idx;
 
     state->columns[0].use_custom_lcd_filter  = 0;
     state->columns[0].fw_index               = 2;
@@ -562,26 +500,6 @@
     FT_Bool      have_0x0D      = 0;
 
 
-    /* no need to check for errors: the values used here are always valid */
-    FT_Property_Set( state->library,
-                     "cff",
-                     "hinting-engine",
-                     &column->cff_hinting_engine );
-    FT_Property_Set( state->library,
-                     "type1",
-                     "hinting-engine",
-                     &column->type1_hinting_engine );
-    FT_Property_Set( state->library,
-                     "t1cid",
-                     "hinting-engine",
-                     &column->t1cid_hinting_engine );
-
-    FT_Property_Set( state->library,
-                     "truetype",
-                     "interpreter-version",
-                     &column->tt_interpreter_versions
-                       [column->tt_interpreter_version_idx] );
-
     /* changing a property is in most cases a global operation; */
     /* we are on the safe side if we reload the face completely */
     /* (this is something a normal program doesn't need to do)  */
@@ -795,55 +713,37 @@
       extra = "";
       if ( rmode == HINT_MODE_BYTECODE )
       {
-        if ( !strcmp( module_name, "cff" ) )
-        {
-          switch ( column->cff_hinting_engine )
-          {
-          case FT_HINTING_FREETYPE:
-            extra = " (CFF FT)";
-            break;
-          case FT_HINTING_ADOBE:
-            extra = " (CFF Adobe)";
-            break;
-          }
-        }
+        FT_UInt  prop;
 
-        else if ( !strcmp( module_name, "type1" ) )
-        {
-          switch ( column->type1_hinting_engine )
-          {
-          case FT_HINTING_FREETYPE:
-            extra = " (T1 FT)";
-            break;
-          case FT_HINTING_ADOBE:
-            extra = " (T1 Adobe)";
-            break;
-          }
-        }
 
-        else if ( !strcmp( module_name, "t1cid" ) )
+        if ( !FT_Property_Get( state->library, module_name,
+                               "interpreter-version", &prop ) )
         {
-          switch ( column->t1cid_hinting_engine )
-          {
-          case FT_HINTING_FREETYPE:
-            extra = " (CID FT)";
-            break;
-          case FT_HINTING_ADOBE:
-            extra = " (CID Adobe)";
-            break;
-          }
-        }
-
-        else if ( !strcmp( module_name, "truetype" ) )
-        {
-          switch ( column->tt_interpreter_versions[
-                     column->tt_interpreter_version_idx] )
+          switch ( prop )
           {
           case TT_INTERPRETER_VERSION_35:
             extra = " (TT v35)";
             break;
           case TT_INTERPRETER_VERSION_40:
             extra = " (TT v40)";
+            break;
+          }
+        }
+
+        else if ( !FT_Property_Get( state->library, module_name,
+                                    "hinting-engine", &prop ) )
+        {
+          switch ( prop )
+          {
+          case FT_HINTING_FREETYPE:
+            extra = !strcmp( module_name, "cff" )   ? " (CFF FT)" :
+                    !strcmp( module_name, "type1" ) ? " (T1 FT)"  :
+                    !strcmp( module_name, "t1cid" ) ? " (CID FT)" : "";
+            break;
+          case FT_HINTING_ADOBE:
+            extra = !strcmp( module_name, "cff" )   ? " (CFF Adobe)" :
+                    !strcmp( module_name, "type1" ) ? " (T1 Adobe)"  :
+                    !strcmp( module_name, "t1cid" ) ? " (CID Adobe)" : "";
             break;
           }
         }
@@ -1264,42 +1164,48 @@
     case grKEY( 'H' ):
       {
         const char*  module_name = FT_FACE_DRIVER_NAME( state->face );
+        FT_UInt      prop = 0;
 
 
-        if ( column->hint_mode == HINT_MODE_BYTECODE )
+        if ( !FT_Property_Get( state->library, module_name,
+                               "interpreter-version", &prop ) )
         {
-          if ( !strcmp( module_name, "cff" ) )
+          switch ( prop )
           {
-            FTDemo_Event_Cff_Hinting_Engine_Change(
-              state->library,
-              &column->cff_hinting_engine,
-              1 );
+          S1:
+          case TT_INTERPRETER_VERSION_35:
+            prop = TT_INTERPRETER_VERSION_40;
+            if ( !FT_Property_Set( state->library, module_name,
+                                   "interpreter-version", &prop ) )
+              break;
+            /* fall through */
+          case TT_INTERPRETER_VERSION_40:
+            prop = TT_INTERPRETER_VERSION_35;
+            if ( !FT_Property_Set( state->library, module_name,
+                                   "interpreter-version", &prop ) )
+              break;
+            goto S1;
           }
-          else if ( !strcmp( module_name, "type1" ) )
-          {
-            FTDemo_Event_Type1_Hinting_Engine_Change(
-              state->library,
-              &column->type1_hinting_engine,
-              1 );
-          }
-          else if ( !strcmp( module_name, "t1cid" ) )
-          {
-            FTDemo_Event_T1cid_Hinting_Engine_Change(
-              state->library,
-              &column->t1cid_hinting_engine,
-              1 );
-          }
-          else if ( !strcmp( module_name, "truetype" ) )
-          {
-            column->tt_interpreter_version_idx += 1;
-            column->tt_interpreter_version_idx %=
-              column->num_tt_interpreter_versions;
+        }
 
-            FT_Property_Set( state->library,
-                             "truetype",
-                             "interpreter-version",
-                             &column->tt_interpreter_versions[
-                               column->tt_interpreter_version_idx] );
+        else if ( !FT_Property_Get( state->library, module_name,
+                                    "hinting-engine", &prop ) )
+        {
+          switch ( prop )
+          {
+          S2:
+          case FT_HINTING_FREETYPE:
+            prop = FT_HINTING_ADOBE;
+            if ( !FT_Property_Set( state->library, module_name,
+                                   "hinting-engine", &prop ) )
+              break;
+            /* fall through */
+          case FT_HINTING_ADOBE:
+            prop = FT_HINTING_FREETYPE;
+            if ( !FT_Property_Set( state->library, module_name,
+                                   "hinting-engine", &prop ) )
+              break;
+            goto S2;
           }
         }
       }
