@@ -1264,8 +1264,9 @@
       }
       else
         strbuf_format( header,
-                       "%.100s: could not be opened at %dpt",
-                       ft_basename( argv[file] ), ptsize );
+                       "%.100s: could not be opened at %d %s",
+                       ft_basename( argv[file] ), ptsize,
+                       res == 72 ? "ppem" : "pt" );
 
       grWriteCellString( bit, 0, HEADER_HEIGHT, Header, fore_color );
 
