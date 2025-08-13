@@ -47,8 +47,7 @@
       "            `.afm' or `.pfm').\n"
       "\n" );
     fprintf( stderr,
-      "  -w W         Set the window width to W pixels (default: 640px).\n"
-      "  -h H         Set the window height to H pixels (default: 480px).\n"
+      "  -d WxH       Set window dimensions (default: 640x480).\n"
       "  -r R         Use resolution R dpi (default: 72dpi).\n"
       "  -s S         Set character size to S points (default: 16pt).\n"
       "  -f TEXTFILE  Change displayed text, using text in TEXTFILE\n"
@@ -1365,21 +1364,21 @@
 
     while ( 1 )
     {
-      option = getopt( argc, argv, "f:h:r:s:vw:" );
+      option = getopt( argc, argv, "d:f:r:s:v" );
 
       if ( option == -1 )
         break;
 
       switch ( option )
       {
+      case 'd':
+        if ( sscanf( optarg, "%dx%d", &width, &height ) != 2 ||
+             width < 1 || height < 1 )
+          usage( execname );
+       break;
+
       case 'f':
         textfile = optarg;
-        break;
-
-      case 'h':
-        height = atoi( optarg );
-        if ( height < 1 )
-          usage( execname );
         break;
 
       case 'r':
@@ -1404,12 +1403,6 @@
           exit( 0 );
         }
         /* break; */
-
-      case 'w':
-        width = atoi( optarg );
-        if ( width < 1 )
-          usage( execname );
-        break;
 
       default:
         usage( execname );
