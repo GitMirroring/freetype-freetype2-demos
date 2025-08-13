@@ -62,6 +62,7 @@
   static grSurface*  surface;        /* current display surface     */
   static grBitmap*   bit;            /* current display bitmap      */
   static grColor     fore_color;     /* foreground on black back    */
+  static grColor     step_color;     /* step color                  */
 
   static unsigned short  width  = DIM_X;     /* window width        */
   static unsigned short  height = DIM_Y;     /* window height       */
@@ -283,6 +284,7 @@
     bit = (grBitmap*)surface;
 
     fore_color = grFindColor( bit, 255, 255, 255, 255 );  /* white */
+    step_color = grFindColor( bit,   0, 100,   0, 255 );  /* green */
 
     grSetTitle( surface, "FreeType Variations Viewer - press ? for help" );
   }
@@ -411,6 +413,7 @@
         {
            w /= 2;
            x += w;
+           grFillRect( bit, x, y - w, w, w, step_color );
         }
 
         Render_Glyph( x, y );
