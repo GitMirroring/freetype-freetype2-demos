@@ -1133,13 +1133,10 @@
     if ( file_loaded )
     {
       Fail = 0;
-      Num  = first_glyph;
-
-      if ( Num >= num_glyphs )
-        Num = num_glyphs - 1;
+      Num  = first_glyph % num_glyphs;
 
       if ( Num < 0 )
-        Num = 0;
+        Num += num_glyphs;
     }
 
     for ( ;; )

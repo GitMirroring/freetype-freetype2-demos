@@ -1068,8 +1068,9 @@
 
     num_indices = handle->current_font->num_indices;
 
-    if ( status.offset >= num_indices )
-      status.offset = num_indices - 1;
+    status.offset %= num_indices;
+    if ( status.offset < 0 )
+      status.offset += num_indices;
 
     return 1;
   }

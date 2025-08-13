@@ -986,8 +986,9 @@
 
     num_indices = handle->current_font->num_indices;
 
-    if ( status.Num >= num_indices )
-      status.Num = num_indices - 1;
+    status.Num %= num_indices;
+    if ( status.Num < 0 )
+      status.Num += num_indices;
 
     err = FTDemo_Get_Size( handle, &size );
     if ( err )
