@@ -954,7 +954,7 @@
 
     while ( 1 )
     {
-      option = getopt( argc, argv, "a:d:e:f:h:r:vw:" );
+      option = getopt( argc, argv, "a:d:e:f:r:v" );
 
       if ( option == -1 )
         break;
