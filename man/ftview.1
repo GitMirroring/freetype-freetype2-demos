@@ -85,20 +85,17 @@ This corresponds to the keystrokes 'A' to 'G' within the program.
 .
 .TP
 .BI \-L \ W1 , W2 , W3 , W4 , W5
-If there are five arguments, set LCD filter weights (as specified in
-function
-.BR \%FT_\:Library_\:SetLcdFilterWeights ).
-.
+.PD 0
 .TP
-.BI \-L \ G1 , G2 , G3 , G4 , G5 , G6
-If there are six arguments, set the subpixel geometry (as specified in
-function
-.BR \%FT_\:Library_\:SetLcdGeometry )
-depending on the implemented subpixel rendering method.
-.
-.TP
-.B \-p
-Preload file in memory to simulate memory-mapping.
+.BI \-L \ Rx , Ry , Gx , Gy , Bx , By
+.PD
+Depending on the implemented subpixel rendering method and the number
+of provided arguments, set either five LCD filter weights or six subpixel
+coordinates (as specified in functions
+.BR \%FT_\:Library_\:SetLcdFilterWeights
+or
+.BR \%FT_\:Library_\:SetLcdGeometry
+respectively).
 .
 .TP
 .BI \-k \ keys
@@ -111,6 +108,10 @@ are mapped to character codes
 as an example,
 .B \-k\ $'\exF3q'
 is function key 'F3' followed by character 'q'.
+.
+.TP
+.B \-p
+Preload file in memory to simulate memory-mapping.
 .
 .TP
 .B \-v
