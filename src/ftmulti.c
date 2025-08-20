@@ -55,7 +55,7 @@
   static FT_Size       size;         /* the font size               */
   static FT_GlyphSlot  glyph;        /* the glyph slot              */
 
-  static unsigned long  encoding = FT_ENCODING_NONE;
+  static unsigned long  encoding = ULONG_MAX;
 
   static FT_Error      error;        /* error returned by FreeType? */
 
@@ -140,18 +140,54 @@
   make_tag( char  *s )
   {
     int            i;
-    unsigned long  l = 0;
+    unsigned long  l = ULONG_MAX;
 
 
-    for ( i = 0; i < 4; i++ )
-    {
-      if ( !s[i] )
-        break;
-      l <<= 8;
-      l  += (unsigned long)s[i];
-    }
+    for ( i = 0; i < 4 && s[i]; i++ )
+      l = ( l << 8 ) | (unsigned char)s[i];
+
+    /* interpret numerically if too short for a tag */
+    if ( i < 4 && !sscanf( s, "%lu", &l ) )
+      l = ULONG_MAX;
 
     return l;
+  }
+
+
+  /* binary search for the last charcode */
+  static int
+  get_last_char( FT_Face     face,
+                 FT_ULong    max )
+  {
+    FT_ULong  res, mid, min = 0;
+    FT_UInt   gidx;
+
+
+    do
+    {
+      mid = ( min + max ) >> 1;
+      res = FT_Get_Next_Char( face, mid, &gidx );
+
+      if ( gidx )
+        min = res;
+      else
+      {
+        max = mid;
+
+        /* once moved, it helps to advance min through sparse regions */
+        if ( min )
+        {
+          res = FT_Get_Next_Char( face, min, &gidx );
+
+          if ( gidx )
+            min = res;
+          else
+            max = min;  /* found it */
+        }
+      }
+    } while ( max > min );
+
+    return (int)max;
   }
 
 
@@ -373,6 +409,8 @@
     int  step_y  = size->metrics.height / 64 + 1;
     int  x, y, w, i;
 
+    unsigned int  idx;
+
 
     x = start_x;
     y = start_y;
@@ -381,7 +419,10 @@
 
     while ( i < num_glyphs )
     {
-      if ( !( error = LoadChar( (unsigned int)i, hinted ) ) )
+      idx = encoding == ULONG_MAX ? (unsigned int)i
+                                  : FT_Get_Char_Index( face, (FT_ULong)i );
+
+      if ( !( error = LoadChar( idx, hinted ) ) )
       {
 #ifdef DEBUG
         if ( i <= first_glyph + 6 )
@@ -920,11 +961,12 @@
       "  -d WxH       Set window dimensions (default: %ux%u).\n",
              DIM_X, DIM_Y );
     fprintf( stderr,
-      "  -e encoding  Specify encoding tag (default: no encoding).\n"
-      "               Common values: `unic' (Unicode), `symb' (symbol),\n"
-      "               `ADOB' (Adobe standard), `ADBC' (Adobe custom).\n"
       "  -r R         Use resolution R dpi (default: 72dpi).\n"
       "  -f index     Specify first glyph index to display.\n"
+      "  -e encoding  Specify encoding tag (default: no encoding).\n"
+      "               Common values: `unic' (Unicode), `symb' (symbol),\n"
+      "               `ADOB' (Adobe standard), `ADBC' (Adobe custom),\n"
+      "               or a numeric charmap index.\n"
       "  -a axis1,axis2,...\n"
       "               Specify the design coordinates for each\n"
       "               variation axis at start-up.\n"
@@ -1052,14 +1094,26 @@
     if ( error )
       goto Display_Font;
 
-    if ( encoding != FT_ENCODING_NONE )
+    if ( encoding != ULONG_MAX )
     {
-      error = FT_Select_Charmap( face, (FT_Encoding)encoding );
+      FT_ULong  max;
+
+
+      if ( encoding < (unsigned long)face->num_charmaps )
+        error = FT_Set_Charmap( face, face->charmaps[encoding] );
+      else
+        error = FT_Select_Charmap( face, (FT_Encoding)encoding );
+
       if ( error )
         goto Display_Font;
-    }
 
-    num_glyphs  = face->num_glyphs;
+      max        = face->charmap->encoding == FT_ENCODING_UNICODE ? 0x110000
+                                                                  : 0x10000;
+      num_glyphs = get_last_char( face, max ) + 1;
+    }
+    else
+      num_glyphs = face->num_glyphs;
+
     glyph       = face->glyph;
     size        = face->size;
     file_loaded = 1;
@@ -1259,7 +1313,10 @@
                          ptsize,
                          res == 72 ? "ppem" : "pt" );
           if ( count )
-            strbuf_format( header, ", glyphs: %d-%d", Num, Num + count - 1 );
+            strbuf_format( header,
+                           encoding == ULONG_MAX ? ", glyphs: %d-%d"
+                                                 : ", chars: 0x%X-0x%X",
+                           Num, Num + count - 1 );
         }
       }
       else

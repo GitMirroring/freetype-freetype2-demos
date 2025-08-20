@@ -44,6 +44,16 @@ px, the height to
 px (default: 640 x 480).
 .
 .TP
+.BI \-r \ r
+Use resolution
+.I r
+dpi (default: 72 dpi).
+.
+.TP
+.BI \-f \ index
+Specify first glyph index to display.
+.
+.TP
 .BI \-e \ encoding
 Specify encoding tag (default: no encoding).
 Common values:
@@ -54,17 +64,7 @@ Common values:
 .B ADOB
 (Adobe standard),
 .B ADBC
-(Adobe custom).
-.
-.TP
-.BI \-r \ r
-Use resolution
-.I r
-dpi (default: 72 dpi).
-.
-.TP
-.BI \-f \ index
-Specify first glyph index to display.
+(Adobe custom), or a numeric charmap index.
 .
 .TP
 .BI \-a \ axis1 , axis2 , .\|.\|.
