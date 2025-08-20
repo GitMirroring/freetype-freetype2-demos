@@ -156,20 +156,21 @@
 
   /* binary search for the last charcode */
   static int
-  get_last_char( FT_Face     face,
-                 FT_ULong    max )
+  get_last_char( void )
   {
-    FT_ULong  res, mid, min = 0;
+    FT_ULong  max = face->charmap->encoding == FT_ENCODING_UNICODE
+                    ? 0x110000 : 0x10000;
+    FT_ULong  nxt, mid, min = 0;
     FT_UInt   gidx;
 
 
     do
     {
       mid = ( min + max ) >> 1;
-      res = FT_Get_Next_Char( face, mid, &gidx );
+      nxt = FT_Get_Next_Char( face, mid, &gidx );
 
       if ( gidx )
-        min = res;
+        min = nxt;
       else
       {
         max = mid;
@@ -177,10 +178,10 @@
         /* once moved, it helps to advance min through sparse regions */
         if ( min )
         {
-          res = FT_Get_Next_Char( face, min, &gidx );
+          nxt = FT_Get_Next_Char( face, min, &gidx );
 
           if ( gidx )
-            min = res;
+            min = nxt;
           else
             max = min;  /* found it */
         }
@@ -1096,9 +1097,6 @@
 
     if ( encoding != ULONG_MAX )
     {
-      FT_ULong  max;
-
-
       if ( encoding < (unsigned long)face->num_charmaps )
         error = FT_Set_Charmap( face, face->charmaps[encoding] );
       else
@@ -1107,9 +1105,7 @@
       if ( error )
         goto Display_Font;
 
-      max        = face->charmap->encoding == FT_ENCODING_UNICODE ? 0x110000
-                                                                  : 0x10000;
-      num_glyphs = get_last_char( face, max ) + 1;
+      num_glyphs = get_last_char() + 1;
     }
     else
       num_glyphs = face->num_glyphs;
