@@ -691,19 +691,38 @@
   }
 
 
-  /* binary search for the last charcode */
   static int
   get_last_char( FT_Face     face,
-                 FT_Int      idx,
-                 FT_ULong    max )
+                 FT_CharMap  cmap )
   {
-    FT_ULong  res, mid, min = 0;
+    FT_ULong  res, max, mid, min = 0;
     FT_UInt   gidx;
 
 
-    if ( FT_Set_Charmap ( face, face->charmaps[idx] ) )
+    switch ( cmap->encoding )
+    {
+    case FT_ENCODING_ADOBE_LATIN_1:
+    case FT_ENCODING_ADOBE_STANDARD:
+    case FT_ENCODING_ADOBE_EXPERT:
+    case FT_ENCODING_ADOBE_CUSTOM:
+    case FT_ENCODING_APPLE_ROMAN:
+      return 0xFF;
+
+    case FT_ENCODING_UNICODE:
+      max = 0x110000;
+      break;
+
+    /* some fonts use range 0x00-0x100, others have 0xF000-0xF0FF */
+    case FT_ENCODING_MS_SYMBOL:
+    default:
+      max = 0x10000;
+      break;
+    }
+
+    if ( FT_Set_Charmap ( face, cmap ) )
       return -1;
 
+    /* binary search for the last charcode */
     do
     {
       mid = ( min + max ) >> 1;
@@ -747,35 +766,14 @@
                                     handle->scaler.face_id, &face );
 
     if ( index < face->num_charmaps )
-      handle->encoding = face->charmaps[index]->encoding;
-    else
-      handle->encoding = FT_ENCODING_ORDER;
-
-    switch ( handle->encoding )
     {
-    case FT_ENCODING_ORDER:
+      font->num_indices = get_last_char( face, face->charmaps[index] ) + 1;
+      handle->encoding  = face->charmaps[index]->encoding;
+    }
+    else
+    {
       font->num_indices = face->num_glyphs;
-      break;
-
-    case FT_ENCODING_UNICODE:
-      font->num_indices = get_last_char( face, index, 0x110000 ) + 1;
-      break;
-
-    case FT_ENCODING_ADOBE_LATIN_1:
-    case FT_ENCODING_ADOBE_STANDARD:
-    case FT_ENCODING_ADOBE_EXPERT:
-    case FT_ENCODING_ADOBE_CUSTOM:
-    case FT_ENCODING_APPLE_ROMAN:
-      font->num_indices = 0x100;
-      break;
-
-    /* some fonts use range 0x00-0x100, others have 0xF000-0xF0FF */
-    case FT_ENCODING_MS_SYMBOL:
-      font->num_indices = get_last_char( face, index, 0x10000 ) + 1;
-      break;
-
-    default:
-      font->num_indices = get_last_char( face, index, 0x10000 ) + 1;
+      handle->encoding  = FT_ENCODING_ORDER;
     }
   }
 

@@ -154,16 +154,34 @@
   }
 
 
-  /* binary search for the last charcode */
   static int
   get_last_char( void )
   {
-    FT_ULong  max = face->charmap->encoding == FT_ENCODING_UNICODE
-                    ? 0x110000 : 0x10000;
-    FT_ULong  nxt, mid, min = 0;
+    FT_ULong  nxt, max, mid, min = 0;
     FT_UInt   gidx;
 
 
+    switch ( face->charmap->encoding )
+    {
+    case FT_ENCODING_ADOBE_LATIN_1:
+    case FT_ENCODING_ADOBE_STANDARD:
+    case FT_ENCODING_ADOBE_EXPERT:
+    case FT_ENCODING_ADOBE_CUSTOM:
+    case FT_ENCODING_APPLE_ROMAN:
+      return 0xFF;
+
+    case FT_ENCODING_UNICODE:
+      max = 0x110000;
+      break;
+
+    /* some fonts use range 0x00-0x100, others have 0xF000-0xF0FF */
+    case FT_ENCODING_MS_SYMBOL:
+    default:
+      max = 0x10000;
+      break;
+    }
+
+    /* binary search for the last charcode */
     do
     {
       mid = ( min + max ) >> 1;
