@@ -96,7 +96,7 @@
    * the same axis value as the non-hidden one.
    */
   static unsigned int  hidden[MAX_MM_AXES];
-  static int           shown_axes[MAX_MM_AXES];  /* array of axis indices */
+  static unsigned int  shown_axes[MAX_MM_AXES];  /* array of axis indices */
   static unsigned int  num_shown_axes;
 
   static FT_UInt  num_named;
@@ -225,14 +225,23 @@
   }
 
 
-  static void
+  static unsigned int
   set_up_axes( void )
   {
+    unsigned int i, j, idx;
+
+
+    for ( i = 0; i < used_num_axis; i++ )
+    {
+      unsigned int  flags;
+
+
+      (void)FT_Get_Var_Axis_Flags( multimaster, i, &flags );
+      hidden[i] = flags & FT_VAR_AXIS_FLAG_HIDDEN;
+    }
+
     if ( grouping )
     {
-      int  i, j, idx;
-
-
       /*
        * `ftmulti' is a diagnostic tool that should also be able to
        * handle pathological situations; for this reason the looping
@@ -248,19 +257,17 @@
        *   corresponding non-hidden axis.
        */
 
-      idx = -1;
-      for ( i = 0; i < (int)used_num_axis; i++ )
+      for ( idx = 0, i = 0; i < used_num_axis; i++ )
       {
-        int            do_skip;
+        int            do_skip = 0;
         unsigned long  tag = multimaster->axis[i].tag;
 
 
-        do_skip = 0;
         if ( hidden[i] )
         {
           /* if axis is hidden, check whether an already assigned */
           /* non-hidden axis has the same tag; if yes, skip it    */
-          for ( j = 0; j <= idx; j++ )
+          for ( j = 0; j < idx; j++ )
             if ( !hidden[shown_axes[j]]                      &&
                  multimaster->axis[shown_axes[j]].tag == tag )
             {
@@ -271,7 +278,7 @@
         else
         {
           /* otherwise, check whether we have already assigned this axis */
-          for ( j = 0; j <= idx; j++ )
+          for ( j = 0; j < idx; j++ )
             if ( shown_axes[j] == i )
             {
               do_skip = 1;
@@ -282,32 +289,29 @@
           continue;
 
         /* we have a new axis to display */
-        shown_axes[++idx] = i;
+        shown_axes[idx] = i;
 
         /* if axis is hidden, use a non-hidden axis */
         /* with the same tag instead if available   */
         if ( hidden[i] )
         {
-          for ( j = i + 1; j < (int)used_num_axis; j++ )
+          for ( j = i + 1; j < used_num_axis; j++ )
             if ( !hidden[j]                      &&
                  multimaster->axis[j].tag == tag )
               shown_axes[idx] = j;
         }
-      }
 
-      num_shown_axes = (unsigned int)( idx + 1 );
+        idx++;
+      }
     }
     else
     {
-      unsigned int  i;
-
-
       /* show all axes */
-      for ( i = 0; i < used_num_axis; i++ )
-        shown_axes[i] = (int)i;
-
-      num_shown_axes = used_num_axis;
+      for ( idx = 0; idx < used_num_axis; idx++ )
+        shown_axes[idx] = idx;
     }
+
+    return idx;
   }
 
 
@@ -894,7 +898,7 @@
 
 
       /* convert to real axis index */
-      axis = (unsigned int)shown_axes[axis];
+      axis = shown_axes[axis];
       a    = multimaster->axis + axis;
 
       rng = a->maximum - a->minimum;
@@ -1165,19 +1169,7 @@
     else
       used_num_axis = multimaster->num_axis;
 
-    for ( n = 0; n < MAX_MM_AXES; n++ )
-      shown_axes[n] = -1;
-
-    for ( n = 0; n < used_num_axis; n++ )
-    {
-      unsigned int  flags;
-
-
-      (void)FT_Get_Var_Axis_Flags( multimaster, n, &flags );
-      hidden[n] = flags & FT_VAR_AXIS_FLAG_HIDDEN;
-    }
-
-    set_up_axes();
+    num_shown_axes = set_up_axes();
 
     for ( n = 0; n < used_num_axis; n++ )
     {
@@ -1264,7 +1256,7 @@
 
         for ( n = 0; n < num_shown_axes; n++ )
         {
-          int  axis = shown_axes[n];
+          unsigned int  axis = shown_axes[n];
 
 
           strbuf_reset( header );
