@@ -723,7 +723,7 @@
       grouping = !grouping;
       new_header = grouping ? "axis grouping is now on"
                             : "axis grouping is now off";
-      set_up_axes();
+      num_shown_axes = set_up_axes();
       break;
 
     case grKeyF3:
