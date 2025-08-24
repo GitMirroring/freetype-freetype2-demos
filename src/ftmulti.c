@@ -917,16 +917,11 @@
                     : FT_FloorFix( pos );
       else
       {
-        double  x;
+        FT_Fixed  x = pos & 0xFFFF;
 
 
-        x  = pos / 65536.0 * 100.0;
-        x += x < 0.0 ? -0.5 : 0.5;
-        x  = (int)x;
-        x  = x / 100.0 * 65536.0;
-        x += x < 0.0 ? -0.5 : 0.5;
-
-        pos = (int)x;
+        x   -= ( ( ( x * 100 + 0x8000 ) & ~0xFFFF ) + 50 ) / 100;
+        pos -= x;
       }
 
       design_pos[axis] = pos;
