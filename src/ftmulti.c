@@ -87,7 +87,7 @@
   static FT_Fixed      requested_pos[MAX_MM_AXES];
   static unsigned int  requested_cnt =  0;
   static unsigned int  used_num_axis =  0;
-  static double        increment     = 0.025;  /* for axes */
+  static FT_Long       frac          = 40;  /* axes resolution */
 
   /*
    * We use the following arrays to support both the display of all axes and
@@ -692,7 +692,7 @@
   Process_Event( void )
   {
     grEvent       event;
-    double        i;
+    FT_Long       i;
     unsigned int  axis;
 
 
@@ -763,13 +763,13 @@
     /* MM-related keys */
 
     case grKEY( '+' ):
-      if ( increment < 0.1 )
-        increment *= 2.0;
+      if ( frac > 10 )
+        frac /= 2;
       break;
 
     case grKEY( '-' ):
-      if ( increment > 0.01 )
-        increment *= 0.5;
+      if ( frac < 80 )
+        frac *= 2;
       break;
 
     case grKEY( '[' ):
@@ -808,7 +808,7 @@
     case grKEY( 'n' ):
     case grKEY( 'o' ):
     case grKEY( 'p' ):
-      i = -increment;
+      i = -1;
       axis = event.key - 'a';
       goto Do_Axis;
 
@@ -828,7 +828,7 @@
     case grKEY( 'N' ):
     case grKEY( 'O' ):
     case grKEY( 'P' ):
-      i = increment;
+      i = 1;
       axis = event.key - 'A';
       goto Do_Axis;
 
@@ -901,10 +901,11 @@
       axis = shown_axes[axis];
       a    = multimaster->axis + axis;
 
-      rng = a->maximum - a->minimum;
-      pos = design_pos[axis];
+      rng = a->maximum       - a->minimum;
+      pos = design_pos[axis] - a->minimum;;
+      i  += FT_MulDiv( frac, pos, rng );
+      pos = a->minimum + FT_MulDiv( rng, i, frac );
 
-      pos += (FT_Fixed)( i * rng );
       if ( pos < a->minimum )
         pos = a->maximum;
       if ( pos > a->maximum )
@@ -1245,7 +1246,7 @@
         if ( num_shown_axes > 0 )
         {
           strbuf_reset( header );
-          strbuf_format( header, "axes (\361 %.1f%%):", 100.0 * increment );
+          strbuf_format( header, "axes (\361 1/%ld):", frac );
           grWriteCellString( bit, 0, 4 * HEADER_HEIGHT, Header, fore_color );
         }
 
