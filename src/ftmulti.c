@@ -71,6 +71,7 @@
   static int  res       = 72;        /* resolution, dpi             */
 
   static int  hinted    = 1;         /* is glyph hinting active?    */
+  static int  autohint  = 0;         /* is auto hinting enforced?   */
   static int  grouping  = 1;         /* is axis grouping active?    */
   static int  antialias = 1;         /* is anti-aliasing active?    */
   static int  fillrule  = 0x0;       /* flip fill flags or not?     */
@@ -420,6 +421,9 @@
     if ( !hint )
       flags |= FT_LOAD_NO_HINTING;
 
+    else if ( autohint )
+      flags |= FT_LOAD_FORCE_AUTOHINT;
+
     return FT_Load_Glyph( face, idx, flags );
   }
 
@@ -603,7 +607,7 @@
     grWriteln( "F3          toggle fill rule flags" );
     grWriteln( "F4          toggle overlap flags" );
     grWriteln( "F5          toggle outline hinting" );
-    grWriteln( "F6          cycle through hinting engines (if available)" );
+    grWriteln( "F6          cycle through hinting engines (incl. auto)" );
     grLn();
     grWriteln( "Tab         toggle anti-aliasing" );
     grWriteln( "Space       toggle rendering mode" );
@@ -657,6 +661,9 @@
           break;
         /* fall through */
       case TT_INTERPRETER_VERSION_40:
+        autohint = !autohint;
+        if ( autohint )
+          break;
         prop = TT_INTERPRETER_VERSION_35;
         if ( !FT_Property_Set( library, module_name,
                                         "interpreter-version", &prop ) )
@@ -678,6 +685,9 @@
           break;
         /* fall through */
       case FT_HINTING_ADOBE:
+        autohint = !autohint;
+        if ( autohint )
+          break;
         prop = FT_HINTING_FREETYPE;
         if ( !FT_Property_Set( library, module_name,
                                         "hinting-engine", &prop ) )
@@ -1278,6 +1288,9 @@
 
           else if ( !hinted )
             hinting_engine = " unhinted";
+
+          else if ( autohint )
+            hinting_engine = " auto";
 
           else if ( !FT_Property_Get( library, module_name,
                                       "interpreter-version", &prop ) )
