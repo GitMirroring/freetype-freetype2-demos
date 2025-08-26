@@ -914,8 +914,7 @@
       /* for MM fonts or large ranges, round the design coordinates      */
       /* otherwise round to two decimal digits to make the PS name short */
       if ( !FT_IS_SFNT( face ) || rng > 0x200000 )
-        pos = i > 0 ? FT_CeilFix( pos )
-                    : FT_FloorFix( pos );
+        pos = FT_RoundFix( pos );
       else
       {
         FT_Fixed  x = pos & 0xFFFF;
