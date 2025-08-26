@@ -902,7 +902,7 @@
       a    = multimaster->axis + axis;
 
       rng = a->maximum       - a->minimum;
-      pos = design_pos[axis] - a->minimum;;
+      pos = design_pos[axis] - a->minimum;
       i  += FT_MulDiv( frac, pos, rng );
       pos = a->minimum + FT_MulDiv( rng, i, frac );
 
