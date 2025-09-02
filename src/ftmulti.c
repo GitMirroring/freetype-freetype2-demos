@@ -418,6 +418,9 @@
     int  flags = FT_LOAD_NO_BITMAP;
 
 
+    if ( !antialias )
+      flags |= FT_LOAD_TARGET_MONO;
+
     if ( !hint )
       flags |= FT_LOAD_NO_HINTING;
 
