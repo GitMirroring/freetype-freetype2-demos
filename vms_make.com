@@ -137,7 +137,7 @@ GRAPHOBJ64 = $(OBJDIR)grobjs_64.obj,  \
 
 # C flags
 CFLAGS = $(CCOPT)$(INCLUDES)/obj=$(OBJDIR)/define=("FT2_BUILD_LIBRARY=1")\
-	/warn=(noinfo,disable=("MACROREDEF","MAYLOSEDATA3"))
+	/warn=(noinfo,disable=("MACROREDEF","MAYLOSEDATA3","UCNNOMAP"))
 
 .c.obj :
 	cc$(CFLAGS)/point=32/list=$(MMS$TARGET_NAME).lis/show=all $(MMS$SOURCE)
