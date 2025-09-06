@@ -1,6 +1,6 @@
 // grid.cpp
 
-// Copyright (C) 2016-2024 by
+// Copyright (C) 2016-2025 by
 // Werner Lemberg.
 
 

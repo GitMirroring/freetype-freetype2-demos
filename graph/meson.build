@@ -2,7 +2,7 @@
 # Meson project file for FreeType graph library
 #
 
-# Copyright (C) 2021-2024 by
+# Copyright (C) 2021-2025 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,

@@ -1,6 +1,6 @@
 // settingpanelmmgx.cpp
 
-// Copyright (C) 2022-2024 by
+// Copyright (C) 2022-2025 by
 // Charlie Jiang.
 
 #include "settingpanelmmgx.hpp"

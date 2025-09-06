@@ -4,7 +4,7 @@
  *
  *    Graphics device interface
  *
- *  Copyright (C) 1999-2024 by
+ *  Copyright (C) 1999-2025 by
  *  The FreeType Development Team - https://freetype.org
  *
  *
