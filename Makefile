@@ -199,7 +199,7 @@ else
       # For the pure `make` call (without using `configure`) we have to add
       # all needed libraries manually.
       LINK_LIBS := $(subst /,$(COMPILER_SEP),$(FTLIB) $(EFENCE)) \
-                   -lm -lrt -lz -lbz2 -lpthread
+                   -lm -lrt -ldl -lz -lbz2 -lpthread
       LINK_LIBS += $(shell pkg-config --libs libpng)
       LINK_LIBS += $(shell pkg-config --libs harfbuzz)
       LINK_LIBS += $(shell pkg-config --libs libbrotlidec)
