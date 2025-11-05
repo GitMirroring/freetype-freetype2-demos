@@ -41,12 +41,12 @@ ifneq ($(X11_LIBS),)
 	  $(LIBTOOL) --mode=compile $(CC) -static $(CFLAGS) \
                      $(GRAPH_INCLUDES:%=$I%) \
                      $I$(subst /,$(COMPILER_SEP),$(GR_X11)) \
-                     $(X11_CFLAGS:%=$I%) \
+                     $(subst -I,$I,$(X11_CFLAGS)) \
                      $T$(subst /,$(COMPILER_SEP),$@ $<)
   else
 	  $(CC) $(CFLAGS) $(GRAPH_INCLUDES:%=$I%) \
                 $I$(subst /,$(COMPILER_SEP),$(GR_X11)) \
-                $(X11_CFLAGS:%=$I%) \
+                $(subst -I,$I,$(X11_CFLAGS)) \
                 $T$(subst /,$(COMPILER_SEP),$@ $<)
   endif
 endif
