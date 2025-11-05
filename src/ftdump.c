@@ -466,8 +466,8 @@
             fi->full_name );
     printf( "%s%d\n", Name_Field( "isFixedPitch" ),
             fi->is_fixed_pitch );
-    printf( "%s%ld\n", Name_Field( "ItalicAngle" ),
-            fi->italic_angle );
+    printf( "%s%.3g\n", Name_Field( "ItalicAngle" ),
+            fi->italic_angle / 65536. );
     printf( "%s%s\n", Name_Field( "Notice" ),
             fi->notice );
     printf( "%s%d\n", Name_Field( "UnderlinePosition" ),
