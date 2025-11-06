@@ -1542,12 +1542,6 @@
         PS_PrivateRec   font_private;
 
 
-        if ( FT_IS_SFNT( face ) )
-        {
-          printf( "\n" );
-          Print_Sfnt_Names( face );
-        }
-
         if ( FT_Get_PS_Font_Info( face, &font_info ) == FT_Err_Ok )
         {
           printf( "\n" );
@@ -1558,6 +1552,12 @@
         {
           printf( "\n" );
           Print_FontPrivate_Dictionary( &font_private );
+        }
+
+        if ( FT_IS_SFNT( face ) )
+        {
+          printf( "\n" );
+          Print_Sfnt_Names( face );
         }
       }
 
