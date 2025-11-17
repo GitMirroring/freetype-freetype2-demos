@@ -1017,7 +1017,6 @@
     int      orig_ptsize, file;
     int      first_glyph = 0;
     int      option;
-    int      file_loaded;
 
     unsigned int  n;
     const char*   execname = ft_basename( argv[0] );
@@ -1101,9 +1100,9 @@
     face_index = 0;
 
   NewFace:
-    ptsize      = orig_ptsize;
-    hinted      = 1;
-    file_loaded = 0;
+    ptsize     = orig_ptsize;
+    hinted     = 1;
+    num_glyphs = 0;
 
     /* Load face */
     error = FT_New_Face( library, argv[file], face_index, &face );
@@ -1142,7 +1141,6 @@
 
     glyph       = face->glyph;
     size        = face->size;
-    file_loaded = 1;
 
     /* retrieve multiple master information */
     FT_Done_MM_Var( library, multimaster );
@@ -1201,7 +1199,7 @@
       goto Display_Font;
 
   Display_Font:
-    if ( file_loaded )
+    if ( num_glyphs )
     {
       Fail = 0;
       Num  = first_glyph % num_glyphs;
@@ -1221,7 +1219,7 @@
       strbuf_init( header, Header, sizeof ( Header ) );
       strbuf_reset( header );
 
-      if ( file_loaded )
+      if ( num_glyphs )
       {
         int  count;
 
@@ -1338,7 +1336,7 @@
       }
       else
         strbuf_format( header,
-                       "%.100s: could not be opened at %d %s",
+                       "%.100s: no glyphs found at %d %s",
                        ft_basename( argv[file] ), ptsize,
                        res == 72 ? "ppem" : "pt" );
 
