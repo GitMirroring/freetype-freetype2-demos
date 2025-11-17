@@ -264,8 +264,8 @@ MainGUI::createLayout()
   glyphDetailsDockWidget_ = new QDockWidget(tr("Glyph Details"), this);
   glyphDetails_ = new GlyphDetails(glyphDetailsDockWidget_, engine_);
   glyphDetailsDockWidget_->setWidget(glyphDetails_);
-  glyphDetailsDockWidget_->setFloating(true);
   glyphDetailsDockWidget_->hide();
+  glyphDetailsDockWidget_->setFloating(true);
 
   // left side
   settingPanel_ = new SettingPanel(this, engine_);
