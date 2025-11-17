@@ -652,9 +652,9 @@ dist:
 
 	mv tmp ft2demos-$(version)
 
-	tar -H ustar -chf - ft2demos-$(version) \
+	tar --format=ustar -chf - ft2demos-$(version) \
 	| gzip -c > ft2demos-$(version).tar.gz
-	tar -H ustar -chf - ft2demos-$(version) \
+	tar --format=ustar -chf - ft2demos-$(version) \
 	| xz -c > ft2demos-$(version).tar.xz
 
 	@# Use CR/LF for zip files.
