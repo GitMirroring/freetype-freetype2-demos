@@ -622,22 +622,18 @@ dist:
 	rm -f ft2demos-$(version).tar.xz
 	rm -f ftdmo$(winversion).zip
 
-	for d in `find . -wholename '*/.git' -prune \
-	                 -o -wholename '*/subprojects/freetype2' -prune \
-	                 -o -type f \
-	                 -o -print` ; do \
-	  mkdir -p tmp/$$d ; \
-	done ;
+	find .    -name .git -prune \
+	       -o -name  tmp -prune \
+	       -o -path '*/subprojects/freetype2' -prune \
+	       -o -type d -exec mkdir -p tmp/{} \;
 
 	currdir=`pwd` ; \
-	for f in `find . -wholename '*/.git' -prune \
-	                 -o -wholename '*/subprojects/freetype2' -prune \
-	                 -o -name .gitignore \
-	                 -o -name .mailmap \
-	                 -o -type d \
-	                 -o -print` ; do \
-	  ln -s $$currdir/$$f tmp/$$f ; \
-	done
+	find .    -name .git -prune \
+	       -o -name  tmp -prune \
+	       -o -path '*/subprojects/freetype2' -prune \
+	       -o -name .gitignore \
+	       -o -name .mailmap \
+	       -o -type f -exec ln -s $$currdir/{} tmp/{} \;
 
 	cd tmp ; \
 	$(MAKE) distclean
