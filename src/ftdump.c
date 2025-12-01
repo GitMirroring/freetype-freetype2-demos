@@ -1360,7 +1360,7 @@
 
       simple++;
 
-      loc += 2 * len;
+      loc += 2 * len; /* skip contour ends */
 
       if ( loc + 1 >= end )
       {
@@ -1372,9 +1372,9 @@
 
       len = (FT_UInt16)( buffer[loc] << 8 | buffer[loc + 1] );
 
-      loc += 2 + len;
+      loc += 2 + len; /* skip instructions */
 
-      if ( len >= end )
+      if ( loc >= end )
       {
         printf( "\nglyph %hd: invalid offset (%d)\n", i, loc );
         continue;
@@ -1383,6 +1383,8 @@
       flags = (FT_UInt16)buffer[loc];
 
       simple_overlap += ( flags & 0x40 ) >> 6;
+
+      /* followed by more point flags and coordinates */ 
     }
 
     printf( "%s%d", Name_Field( "   simple" ), simple );
