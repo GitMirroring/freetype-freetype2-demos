@@ -1007,10 +1007,10 @@
 
     status.offset += delta;
 
-    if ( status.offset < 0 )
-      status.offset = 0;
     if ( status.offset >= num_indices )
       status.offset = num_indices - 1;
+    if ( status.offset < 0 )
+      status.offset = 0;
 
     return old_offset == status.offset ? 0 : 1;
   }
@@ -1039,10 +1039,9 @@
 
     FTDemo_Set_Current_Font( handle, font );
 
-    if ( handle->encoding == FT_ENCODING_ORDER )
+    if ( handle->encoding == FT_ENCODING_ORDER ||
+         font->num_indices <= 0x20 )  /* including UVS */
       status.offset = 0;
-    else if ( font->num_indices <= 0x20 )  /* including UVS */
-      status.offset = font->num_indices - 1;
     else
       status.offset = 0x20;
 
@@ -1068,9 +1067,14 @@
 
     num_indices = handle->current_font->num_indices;
 
-    status.offset %= num_indices;
-    if ( status.offset < 0 )
-      status.offset += num_indices;
+    if ( num_indices == 0 )
+      status.offset = 0;
+    else
+    {
+      status.offset %= num_indices;
+      if ( status.offset < 0 )
+        status.offset += num_indices;
+    }
 
     return 1;
   }
