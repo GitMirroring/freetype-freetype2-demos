@@ -12,11 +12,12 @@
 #include <utility>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-# include <QTextCodec>
+#include <QTextCodec>
 #else
-# include <QByteArrayView>
-# include <QStringConverter>
+#include <QByteArrayView>
+#include <QStringConverter>
 #endif
+#include <QTimeZone>
 
 #include <freetype/ftmodapi.h>
 #include <freetype/ttnameid.h>
@@ -214,10 +215,10 @@ FontBasicInfo::get(Engine* engine)
       = head->Modified[1] | static_cast<uint64_t>(head->Modified[0]) << 32;
 
     result.createdTime
-      = QDateTime::fromSecsSinceEpoch(createdTimestamp, Qt::OffsetFromUTC)
+      = QDateTime::fromSecsSinceEpoch(static_cast<qint64>(createdTimestamp), QTimeZone::utc())
           .addSecs(-2082844800);
     result.modifiedTime
-      = QDateTime::fromSecsSinceEpoch(modifiedTimestamp, Qt::OffsetFromUTC)
+      = QDateTime::fromSecsSinceEpoch(static_cast<qint64>(modifiedTimestamp), QTimeZone::utc())
           .addSecs(-2082844800);
 
     auto revDouble = head->Font_Revision / 65536.0;
