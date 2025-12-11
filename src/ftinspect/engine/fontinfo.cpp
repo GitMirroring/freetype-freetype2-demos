@@ -163,10 +163,11 @@ SFNTName::sfntNameToQString(unsigned short platformID,
 }
 
 
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-QTextCodec* utf16BECodec = QTextCodec::codecForName("UTF-16BE");
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+QStringDecoder utf16BECvt = QStringDecoder(QStringDecoder::Utf16BE);
 #else
-QStringDecoder utf16BECvt = (QStringDecoder(QStringDecoder::Utf16BE))(size);
+QTextCodec* utf16BECodec = QTextCodec::codecForName("UTF-16BE");
+
 #endif
 
 QString
@@ -178,7 +179,7 @@ SFNTName::utf16BEToQString(char const* str,
     size = INT_MAX - 1;
   return utf16BECodec->toUnicode(str, static_cast<int>(size));
 #else
-  return utf16BECvt(QByteArrayView(reinterpret_cast<char*>(str), size));
+  return utf16BECvt(QByteArrayView(str, size));
 #endif
 }
 

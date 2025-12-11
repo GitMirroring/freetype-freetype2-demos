@@ -8,7 +8,13 @@
 
 #include <cmath>
 
+#include <QtGlobal>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#define QT6_STRING
+#include <QStringEncoder>
+#else
 #include <QTextCodec>
+#endif
 
 
 StringRenderer::StringRenderer(Engine* engine)
@@ -678,6 +684,10 @@ int
 StringRenderer::convertCharEncoding(int charUcs4,
                                     FT_Encoding encoding)
 {
+#ifdef QT6_STRING
+  // TODO: implement this without using ICU/iconv...
+  return charUcs4;
+#else
   switch (encoding)
   {
   case FT_ENCODING_MS_SYMBOL:
@@ -730,6 +740,7 @@ StringRenderer::convertCharEncoding(int charUcs4,
     return res[0];
   return ((static_cast<int>(res[0]) & 0xFF) << 8)
          | (static_cast<int>(res[1]) & 0xFF);
+#endif
 }
 
 
