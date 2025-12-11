@@ -658,7 +658,7 @@
 
     have_topleft = 0;
 
-    while ( num_indices-- )
+    while ( 1 )
     {
       FT_UInt  glyph_idx;
 
@@ -666,12 +666,12 @@
       ch = utf8_next( &p, pEnd );
       if ( ch < 0 )
       {
+        /* check for progress in pen position */
+        if ( x <= start_x && y <= start_y )
+          return error;
+
         p  = Text;
         ch = utf8_next( &p, pEnd );
-
-        /* not a single character of the text string could be displayed */
-        if ( !have_topleft )
-          return error;
       }
 
       glyph_idx = FTDemo_Get_Index( handle, (FT_UInt32)ch );
