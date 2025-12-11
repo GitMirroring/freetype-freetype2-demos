@@ -83,7 +83,7 @@ private:
   GlyphPoints* currentGlyphPointsItem_;
   GlyphPointNumbers* currentGlyphPointNumbersItem_;
   GlyphBitmap* currentGlyphBitmapItem_;
-  Grid* gridItem_ = NULL;
+  Grid* gridItem_;
 
   GlyphIndexSelector* indexSelector_;
   FontSizeSelector* sizeSelector_;
@@ -115,6 +115,7 @@ private:
   void createConnections();
 
   void updateGrid();
+  void clearItemsOnScene();
   void applySettings();
   void setDefaults();
 };

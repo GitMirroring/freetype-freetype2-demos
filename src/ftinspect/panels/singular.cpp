@@ -27,8 +27,17 @@ SingularTab::SingularTab(QWidget* parent,
 
 SingularTab::~SingularTab()
 {
-  delete gridItem_;
-  gridItem_ = NULL;
+  if (glyphScene_)
+    clearItemsOnScene();
+  if (glyphView_)
+      glyphView_->setScene(NULL);
+  if (gridItem_)
+  {
+    if (glyphScene_)
+      glyphScene_->removeItem(gridItem_);
+    delete gridItem_;
+    gridItem_ = NULL;
+  }
 }
 
 
@@ -58,37 +67,7 @@ SingularTab::drawGlyph()
   if (!engine_)
     return;
 
-  if (currentGlyphBitmapItem_)
-  {
-    glyphScene_->removeItem(currentGlyphBitmapItem_);
-    delete currentGlyphBitmapItem_;
-
-    currentGlyphBitmapItem_ = NULL;
-  }
-
-  if (currentGlyphOutlineItem_)
-  {
-    glyphScene_->removeItem(currentGlyphOutlineItem_);
-    delete currentGlyphOutlineItem_;
-
-    currentGlyphOutlineItem_ = NULL;
-  }
-
-  if (currentGlyphPointsItem_)
-  {
-    glyphScene_->removeItem(currentGlyphPointsItem_);
-    delete currentGlyphPointsItem_;
-
-    currentGlyphPointsItem_ = NULL;
-  }
-
-  if (currentGlyphPointNumbersItem_)
-  {
-    glyphScene_->removeItem(currentGlyphPointNumbersItem_);
-    delete currentGlyphPointNumbersItem_;
-
-    currentGlyphPointNumbersItem_ = NULL;
-  }
+  clearItemsOnScene();
 
   glyphView_->setBackgroundBrush(
     QColor(engine_->renderingEngine()->background()));
@@ -198,6 +177,42 @@ SingularTab::updateGrid()
     gridItem_->updateRect();
 }
 
+
+void
+SingularTab::clearItemsOnScene()
+{
+  if (currentGlyphBitmapItem_)
+  {
+    glyphScene_->removeItem(currentGlyphBitmapItem_);
+    delete currentGlyphBitmapItem_;
+
+    currentGlyphBitmapItem_ = NULL;
+  }
+
+  if (currentGlyphOutlineItem_)
+  {
+    glyphScene_->removeItem(currentGlyphOutlineItem_);
+    delete currentGlyphOutlineItem_;
+
+    currentGlyphOutlineItem_ = NULL;
+  }
+
+  if (currentGlyphPointsItem_)
+  {
+    glyphScene_->removeItem(currentGlyphPointsItem_);
+    delete currentGlyphPointsItem_;
+
+    currentGlyphPointsItem_ = NULL;
+  }
+
+  if (currentGlyphPointNumbersItem_)
+  {
+    glyphScene_->removeItem(currentGlyphPointNumbersItem_);
+    delete currentGlyphPointNumbersItem_;
+
+    currentGlyphPointNumbersItem_ = NULL;
+  }
+}
 
 void
 SingularTab::wheelZoom(QWheelEvent* event)
