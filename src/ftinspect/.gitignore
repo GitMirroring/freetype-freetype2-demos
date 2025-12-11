@@ -5,6 +5,8 @@ moc_*.cpp
 moc_*.h
 .qmake.stash
 
+CMakeUserPresets.json
+
 # Visual Studio specific
 out
 .vs

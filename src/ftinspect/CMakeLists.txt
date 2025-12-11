@@ -1,76 +1,82 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.19)
 cmake_policy(SET CMP0074 NEW)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project("ftinspect")
+set(FTINSPECT_SRC
+    "engine/charmap.cpp"
+    "engine/engine.cpp"
+    "engine/fontfilemanager.cpp"
+    "engine/fontinfo.cpp"
+    "engine/fontinfonamesmapping.cpp"
+    "engine/mmgx.cpp"
+    "engine/paletteinfo.cpp"
+    "engine/rendering.cpp"
+    "engine/stringrenderer.cpp"
 
-if (MSVC)
-  add_compile_options("/utf-8")
-endif ()
+    "glyphcomponents/glyphbitmap.cpp"
+    "glyphcomponents/glyphcontinuous.cpp"
+    "glyphcomponents/glyphoutline.cpp"
+    "glyphcomponents/glyphpointnumbers.cpp"
+    "glyphcomponents/glyphpoints.cpp"
+    "glyphcomponents/graphicsdefault.cpp"
+    "glyphcomponents/grid.cpp"
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+    "models/customcomboboxmodels.cpp"
+    "models/fontinfomodels.cpp"
 
-find_package(Qt5 5.15 COMPONENTS Widgets REQUIRED)
+    "panels/comparator.cpp"
+    "panels/continuous.cpp"
+    "panels/glyphdetails.cpp"
+    "panels/info.cpp"
+    "panels/settingpanel.cpp"
+    "panels/settingpanelmmgx.cpp"
+    "panels/singular.cpp"
+
+    "widgets/charmapcombobox.cpp"
+    "widgets/customwidgets.cpp"
+    "widgets/fontsizeselector.cpp"
+    "widgets/glyphindexselector.cpp"
+    "widgets/tripletselector.cpp"
+
+    "ftinspect.cpp"
+    "maingui.cpp"
+    "uihelper.cpp"
+)
+
+set(USE_QT_VERSION 6 CACHE STRING "Qt major version to use (5 or 6 supported).")
+if(NOT USE_QT_VERSION MATCHES "^(5|6)$")
+    message(FATAL_ERROR "USE_QT_VERSION must be set to either 5 or 6. Found: '${USE_QT_VERSION}'")
+endif()
+if(USE_QT_VERSION EQUAL 6)
+    set(QT_MIN_VERSION "6.8")
+elseif(USE_QT_VERSION EQUAL 5)
+    set(QT_MIN_VERSION "5.15")
+endif()
+
 find_package(Freetype REQUIRED)
+find_package(Qt${USE_QT_VERSION} ${QT_MIN_VERSION} COMPONENTS Widgets REQUIRED)
+if(USE_QT_VERSION EQUAL 6)
+    qt_standard_project_setup()
+    qt_add_executable(ftinspect ${FTINSPECT_SRC})
+else()
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTORCC ON)
+    set(CMAKE_AUTOUIC ON)
+    add_executable(ftinspect ${FTINSPECT_SRC})
+endif()
 
-add_executable(ftinspect
-  "engine/charmap.cpp"
-  "engine/engine.cpp"
-  "engine/fontfilemanager.cpp"
-  "engine/fontinfo.cpp"
-  "engine/fontinfonamesmapping.cpp"
-  "engine/mmgx.cpp"
-  "engine/paletteinfo.cpp"
-  "engine/rendering.cpp"
-  "engine/stringrenderer.cpp"
-
-  "glyphcomponents/glyphbitmap.cpp"
-  "glyphcomponents/glyphcontinuous.cpp"
-  "glyphcomponents/glyphoutline.cpp"
-  "glyphcomponents/glyphpointnumbers.cpp"
-  "glyphcomponents/glyphpoints.cpp"
-  "glyphcomponents/graphicsdefault.cpp"
-  "glyphcomponents/grid.cpp"
-
-  "models/customcomboboxmodels.cpp"
-  "models/fontinfomodels.cpp"
-
-  "panels/comparator.cpp"
-  "panels/continuous.cpp"
-  "panels/glyphdetails.cpp"
-  "panels/info.cpp"
-  "panels/settingpanel.cpp"
-  "panels/settingpanelmmgx.cpp"
-  "panels/singular.cpp"
-
-  "widgets/charmapcombobox.cpp"
-  "widgets/customwidgets.cpp"
-  "widgets/fontsizeselector.cpp"
-  "widgets/glyphindexselector.cpp"
-  "widgets/tripletselector.cpp"
-
-  "ftinspect.cpp"
-  "maingui.cpp"
-  "uihelper.cpp"
-)
-
-target_link_libraries(ftinspect
+target_link_libraries(ftinspect PRIVATE
   Freetype::Freetype
-  Qt5::Core
-  Qt5::Widgets
+  Qt${USE_QT_VERSION}::Core
+  Qt${USE_QT_VERSION}::Widgets
 )
-
-# Fix for CMake prior to 3.15
-string(REGEX REPLACE
-  "/W[3|4]" ""
-  CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 if (MSVC)
   target_compile_options(ftinspect
-    PRIVATE "/W4" "/wd4100")
+    PRIVATE "/W4" "/wd4100" "/utf-8")
 else (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
       OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   target_compile_options(ftinspect
