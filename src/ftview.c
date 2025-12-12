@@ -667,7 +667,7 @@
       if ( ch < 0 )
       {
         /* check for progress in pen position */
-        if ( x <= start_x && y <= start_y )
+        if ( x + y <= start_x + start_y )
           return error;
 
         p  = Text;
