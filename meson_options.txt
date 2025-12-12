@@ -19,4 +19,11 @@ option('librsvg',
   value: 'enabled',
   description: 'Enabling librsvg to render OT-SVG glyphs')
 
+# For ftinspect.
+option('qt_version',
+  type: 'combo',
+  choices: ['auto', 'qt5', 'qt6'],
+  value: 'auto',
+  description: 'Select Qt version to build against')
+
 # EOF

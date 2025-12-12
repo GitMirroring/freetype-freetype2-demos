@@ -11,15 +11,42 @@
 # indicate that you have read the license and understand and accept it
 # fully.
 
-qt5 = import('qt5')
-qt5_dep = dependency('qt5',
-  required: false,
-  modules: ['Core', 'Gui', 'Widgets'],
-  version : '>=5.15')
+iconv_dep = dependency('iconv', required: false)
+qt_version_opt = get_option('qt_version')
+qt_dep = dependency('', required: false)
+qt_mod = disabler()
 
-# Don't compile `ftinspect` if Qt5 is not found.  This can happen
+# Try finding Qt 6
+if qt_version_opt == 'auto' or qt_version_opt == 'qt6'
+  qt6_mod = import('qt6')
+  qt6_dep = dependency('qt6',
+    required: qt_version_opt == 'qt6',
+    modules: ['Core', 'Gui', 'Widgets'],
+    version: '>=6.8')
+  
+  if qt6_dep.found()
+    qt_mod = qt6_mod
+    qt_dep = qt6_dep
+  endif
+endif
+
+# Try finding Qt 5 if Qt 6 wasn't found or requested
+if not qt_dep.found() and (qt_version_opt == 'auto' or qt_version_opt == 'qt5')
+  qt5_mod = import('qt5')
+  qt5_dep = dependency('qt5',
+    required: qt_version_opt == 'qt5',
+    modules: ['Core', 'Gui', 'Widgets'],
+    version: '>=5.15')
+
+  if qt5_dep.found()
+    qt_mod = qt5_mod
+    qt_dep = qt5_dep
+  endif
+endif
+
+# Don't compile `ftinspect` if Qt is not found.  This can happen
 # when cross-compiling to a different system.
-if qt5_dep.found()
+if qt_dep.found()
   sources = files([
     'engine/charmap.cpp',
     'engine/engine.cpp',
@@ -61,7 +88,7 @@ if qt5_dep.found()
     'uihelper.cpp',
   ])
 
-  moc_files = qt5.preprocess(
+  moc_files = qt_mod.preprocess(
     moc_headers: [
       'engine/fontfilemanager.hpp',
 
@@ -87,13 +114,13 @@ if qt5_dep.found()
 
       'maingui.hpp',
     ],
-    dependencies: qt5_dep)
+    dependencies: qt_dep)
 
   executable('ftinspect',
     sources,
     moc_files,
-    dependencies: [qt5_dep, libfreetype2_dep],
-    override_options: ['cpp_std=c++11'],
+    dependencies: [qt_dep, libfreetype2_dep],
+    override_options: ['cpp_std=c++17'],
     install: true)
 endif
 
