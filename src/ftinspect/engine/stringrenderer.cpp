@@ -12,6 +12,19 @@
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #define QT6_STRING
 #include <QStringEncoder>
+
+#if __has_include(<iconv.h>)
+#define HAS_ICONV
+#include <iconv.h>
+#else
+#define HAS_WIN32
+#ifdef _WIN32
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
+#endif
+
 #else
 #include <QTextCodec>
 #endif
@@ -680,14 +693,23 @@ StringRenderer::clearActive(bool glyphOnly)
 }
 
 
+#ifdef HAS_ICONV
+namespace
+{
+struct
+{
+  iconv_t iconv_obj = NULL;
+  const char* name = NULL;
+} last_iconv;
+}
+iconv_t invalid_iconv = reinterpret_cast<libiconv_t>(-1);  // can't be constexpr
+#endif
+
+
 int
 StringRenderer::convertCharEncoding(int charUcs4,
                                     FT_Encoding encoding)
 {
-#ifdef QT6_STRING
-  // TODO: implement this without using ICU/iconv...
-  return charUcs4;
-#else
   switch (encoding)
   {
   case FT_ENCODING_MS_SYMBOL:
@@ -700,6 +722,132 @@ StringRenderer::convertCharEncoding(int charUcs4,
   default:
     ; // Proceed.
   }
+#ifdef QT6_STRING
+#ifdef HAS_ICONV
+  const char* encodingName = NULL;
+  switch (encoding)
+  {
+    case FT_ENCODING_SJIS:
+    encodingName = "SHIFT-JIS";
+    break;
+  case FT_ENCODING_PRC:
+    encodingName = "GB18030";
+    break;
+  case FT_ENCODING_BIG5:
+    encodingName = "BIG-5"; // Big5
+    break;
+  case FT_ENCODING_WANSUNG:
+    encodingName = "KSC_5601"; // KS C 5601:1987
+    break;
+  case FT_ENCODING_JOHAB:
+    encodingName = "CP1361"; //  KS C 5601:1992 / EUC-KR
+    break;
+  case FT_ENCODING_APPLE_ROMAN:
+    encodingName = "MAC";
+    break;
+  default: ;  // Failed
+  }
+  if (!encodingName)
+    return charUcs4; // Failed
+  // Check if we need to open a new converter
+  if (!last_iconv.iconv_obj || last_iconv.iconv_obj == invalid_iconv || last_iconv.name != encodingName)
+  {
+    iconv_t new_iconv = iconv_open(encodingName, "UTF-32LE");
+    if (new_iconv == invalid_iconv)
+      return charUcs4; // Failed
+    if (last_iconv.iconv_obj && last_iconv.iconv_obj != invalid_iconv)
+      iconv_close(last_iconv.iconv_obj);
+    last_iconv.iconv_obj = new_iconv;
+    last_iconv.name = encodingName;
+  }
+  static_assert(sizeof(charUcs4) == 4);
+  std::array<char, sizeof(charUcs4)> srcBytes = {
+    static_cast<char>(charUcs4       & 0xFF),
+    static_cast<char>(charUcs4 >> 8  & 0xFF),
+    static_cast<char>(charUcs4 >> 16 & 0xFF),
+    static_cast<char>(charUcs4 >> 24 & 0xFF)
+  };
+  // Prepare for iconv
+  char* inPtr = srcBytes.data();
+  size_t inBytesLeft = srcBytes.size();
+  char dstBuffer[8] = { 0 };
+  char* outPtr = dstBuffer;
+  size_t outBytesLeft = sizeof(dstBuffer);
+  // Execute iconv
+  if (size_t resultCount = iconv(last_iconv.iconv_obj, &inPtr, &inBytesLeft, &outPtr, &outBytesLeft); 
+      resultCount== static_cast<size_t>(-1))
+    return charUcs4;  // Failed
+  // Pack into BE
+  int result = 0;
+  for (size_t i = 0; i < sizeof(dstBuffer) - outBytesLeft; ++i)
+    result = (result << 8) | static_cast<unsigned char>(dstBuffer[i]);
+  return result;
+
+#else
+#ifdef HAS_WIN32
+  // Use wide to multibyte
+  UINT codepage = 0;
+  switch (encoding)
+  {
+    case FT_ENCODING_SJIS:
+      codepage = 932; // Shift-JIS
+      break;
+    case FT_ENCODING_PRC:
+      codepage = 936; // GB2312 / GBK / GB18030
+      break;
+    case FT_ENCODING_BIG5:
+      codepage = 950; // Big5
+      break;
+    case FT_ENCODING_WANSUNG:
+      codepage = 949; // Unified Hangul (UHC)
+      break;
+    case FT_ENCODING_JOHAB:
+      codepage = 1361;
+      break;
+    case FT_ENCODING_APPLE_ROMAN:
+      codepage = 10000;
+      break;
+    default:
+      return charUcs4;
+  }
+
+  // UTF-32 to UTF-16
+  wchar_t utf16[2];
+  int utf16Len = 0;
+  if (static_cast<unsigned int>(charUcs4) <= 0xFFFF)
+  {
+    utf16[0] = static_cast<wchar_t>(charUcs4);
+    utf16Len = 1;
+  }
+  else if (static_cast<unsigned int>(charUcs4) <= 0x10FFFF)
+  {
+    // Surrogate pair
+    utf16[0] = static_cast<wchar_t>(0xD800 + ((charUcs4 - 0x10000) >> 10));
+    utf16[1] = static_cast<wchar_t>(0xDC00 + ((charUcs4 - 0x10000) & 0x3FF));
+    utf16Len = 2;
+  }
+  else
+    return charUcs4; // Invalid Unicode
+
+  // UTF-16 to destination
+  char dstBuffer[8] = {0};
+  int dstLen = WideCharToMultiByte(codepage, 0, utf16, utf16Len, dstBuffer, sizeof(dstBuffer), NULL, NULL);
+
+  if (dstLen <= 0)
+    return charUcs4; //  Failed
+
+  // Pack into BE
+  int result = 0;
+  for (int i = 0; i < dstLen; ++i)
+    result = (result << 8) | static_cast<unsigned char>(dstBuffer[i]);
+  return result;
+#else
+  // All Failed
+  return charUcs4;
+#endif
+#endif
+#else
+  
 
   auto mib = -1;
   switch (encoding)

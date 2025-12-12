@@ -57,6 +57,7 @@ elseif(USE_QT_VERSION EQUAL 5)
 endif()
 
 find_package(Freetype REQUIRED)
+find_package(Iconv)
 find_package(Qt${USE_QT_VERSION} ${QT_MIN_VERSION} COMPONENTS Widgets REQUIRED)
 if(USE_QT_VERSION EQUAL 6)
     qt_standard_project_setup()
@@ -73,6 +74,9 @@ target_link_libraries(ftinspect PRIVATE
   Qt${USE_QT_VERSION}::Core
   Qt${USE_QT_VERSION}::Widgets
 )
+if(Iconv_FOUND)
+  target_link_libraries(ftinspect PRIVATE Iconv::Iconv)
+endif()
 
 if (MSVC)
   target_compile_options(ftinspect
