@@ -308,7 +308,7 @@ FontSizeSelector::setDefaults(bool sizeOnly)
   sizeDoubleSpinBox_->setValue(lastValue_);
   if (sizeOnly)
     return;
-  dpiSpinBox_->setValue(96);
+  dpiSpinBox_->setValue(static_cast<int>(devicePixelRatioF() * 96));
   checkUnits();
 }
 

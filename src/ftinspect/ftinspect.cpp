@@ -21,6 +21,9 @@ main(int argc,
                         QString::number(FREETYPE_MINOR),
                         QString::number(FREETYPE_PATCH));
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+  QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
   QApplication app(argc, argv);
   app.setApplicationName("ftinspect");
   app.setApplicationVersion(version);

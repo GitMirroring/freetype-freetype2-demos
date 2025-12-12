@@ -137,7 +137,8 @@ GlyphContinuous::paintEvent(QPaintEvent* event)
 {
   QPainter painter(this);
   painter.fillRect(rect(), backgroundColorCache_);
-  painter.scale(scale_, scale_);
+  actualScale_ = scale_ / painter.device()->devicePixelRatioF();
+  painter.scale(actualScale_, actualScale_);
 
   if (glyphCache_.empty())
     fillCache();
@@ -194,7 +195,7 @@ GlyphContinuous::mouseMoveEvent(QMouseEvent* event)
   if (event->buttons() != Qt::LeftButton)
     return;
   auto delta = event->pos() - mouseDownPostition_;
-  delta /= scale_;
+  delta /= actualScale_;
   if (source_ == SRC_AllGlyphs)
   {
     auto deltaIndex = -delta.x() / HorizontalUnitLength
@@ -208,11 +209,11 @@ GlyphContinuous::mouseMoveEvent(QMouseEvent* event)
     positionDelta_.setX(0); // Don't move horizontally.
     // The string renderer will handle the horizontal delta. See below.
 
-    // Note the double use of `scale_`: one for undoing `delta /= scale_`,
+    // Note the double use of `actualScale_`: one for undoing `delta /= actualScale_`,
     // the other one for effectively dividing the width by the scaling
     // factor.
-    auto horiPos = delta.x() * scale_
-                   * scale_ / static_cast<double>(width());
+    auto horiPos = delta.x() * actualScale_
+                   * actualScale_ / static_cast<double>(width());
     horiPos += prevHoriPosition_;
     horiPos = qBound(0.0, horiPos, 1.0);
     stringRenderer_.setPosition(horiPos);
@@ -281,8 +282,8 @@ GlyphContinuous::paintByRenderer()
     {
       beginSaveLine(pos, size);
     });
-  auto count = stringRenderer_.render(static_cast<int>(width() / scale_),
-                                      static_cast<int>(height() / scale_),
+  auto count = stringRenderer_.render(static_cast<int>(width() / actualScale_),
+                                      static_cast<int>(height() / actualScale_),
                                       beginIndex_);
   if (source_ == SRC_AllGlyphs)
     displayingCount_ = count;
@@ -592,7 +593,7 @@ GlyphContinuous::findGlyphByMouse(QPoint position,
                                   double* outSizePoint)
 {
   position -= positionDelta_;
-  position /= scale_;
+  position /= actualScale_;
   for (auto& line : glyphCache_)
     for (auto& entry : line.entries)
     {
