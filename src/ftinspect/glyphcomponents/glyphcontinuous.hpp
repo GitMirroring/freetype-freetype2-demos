@@ -146,6 +146,7 @@ private:
   int displayingCount_ = 0;
   FT_Fixed strokeRadiusForSize_ = 0;
   double scale_ = 1.0;
+  double actualScale_ = 1.0; // adjusted for HiDPI
   FT_Matrix shearMatrix_;
 
   FT_Stroker stroker_;
