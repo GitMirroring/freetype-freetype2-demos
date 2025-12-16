@@ -1489,7 +1489,7 @@
     snprintf( filename, sizeof ( filename ), "%s", argv[file] );
 
     /* try to load the file name as is */
-    error = FT_New_Face( library, filename, 0, &face );
+    error = FT_New_Face( library, filename, -1, &face );
     if ( !error )
       goto Success;
 
@@ -1507,12 +1507,12 @@
     {
       snprintf( filename, sizeof ( filename ), "%s%s", argv[file], ".ttf" );
 
-      error = FT_New_Face( library, filename, 0, &face );
+      error = FT_New_Face( library, filename, -1, &face );
     }
 #endif
 
     if ( error )
-      PanicZ( library, "Could not open face." );
+      PanicZ( library, "Unrecognized font format." );
 
   Success:
     num_faces = face->num_faces;
@@ -1524,11 +1524,12 @@
 
     for ( i = 0; i < num_faces; i++ )
     {
+      printf( "\n----- Face number: %d -----\n\n", i );
+
       error = FT_New_Face( library, filename, i, &face );
       if ( error )
         PanicZ( library, "Could not open face." );
 
-      printf( "\n----- Face number: %d -----\n\n", i );
       Print_Name( face );
 
       printf( "%s%ld\n", Name_Field( "glyph count" ), face->num_glyphs );
