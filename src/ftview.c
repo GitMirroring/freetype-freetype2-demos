@@ -687,7 +687,7 @@
         status.topleft = ch;
       }
 
-      if ( X_TOO_LONG( x + ( size->metrics.max_advance >> 6 ), display ) )
+      if ( X_TOO_LONG( x + size->metrics.x_ppem, display ) )
       {
         x  = start_x;
         y += step_y;
