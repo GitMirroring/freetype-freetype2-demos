@@ -80,8 +80,6 @@
     RENDER_MODE_ALL = 0,
     RENDER_MODE_FANCY,
     RENDER_MODE_STROKE,
-    RENDER_MODE_TEXT,
-    RENDER_MODE_WATERFALL,
     N_RENDER_MODES
   };
 
@@ -120,30 +118,6 @@
 
   static FTDemo_Display*  display;
   static FTDemo_Handle*   handle;
-
-
-  /*
-     In UTF-8 encoding:
-
-       The quick brown fox jumps over the lazy dog
-       0123456789
-       âêîûôäëïöüÿàùéèç
-       &#~"'(-`_^@)=+°
-       ABCDEFGHIJKLMNOPQRSTUVWXYZ
-       $£^¨*µù%!§:/;.,?<>
-
-     The trailing space is for `looping' in case `Text' gets displayed more
-     than once.
-   */
-  static const char*  Text =
-    "The quick brown fox jumps over the lazy dog"
-    " 0123456789"
-    " \303\242\303\252\303\256\303\273\303\264"
-     "\303\244\303\253\303\257\303\266\303\274\303\277"
-     "\303\240\303\271\303\251\303\250\303\247"
-    " &#~\"\'(-`_^@)=+\302\260"
-    " ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    " $\302\243^\302\250*\302\265\303\271%!\302\247:/;.,?<> ";
 
 
   static void
@@ -624,199 +598,6 @@
   }
 
 
-  static int
-  Render_Text( int  num_indices,
-               int  offset )
-  {
-    int      start_x, start_y, step_y, x, y;
-    FT_Size  size;
-    int      have_topleft;
-
-    const char*  p;
-    const char*  pEnd;
-    int          ch;
-
-
-    error = FTDemo_Get_Size( handle, &size );
-    if ( error )
-      return -1;
-
-    INIT_SIZE( size, start_x, start_y, step_y, x, y );
-
-    p    = Text;
-    pEnd = p + strlen( Text );
-
-    while ( offset-- )
-    {
-      ch = utf8_next( &p, pEnd );
-      if ( ch < 0 )
-      {
-        p  = Text;
-        ch = utf8_next( &p, pEnd );
-      }
-    }
-
-    have_topleft = 0;
-
-    while ( 1 )
-    {
-      FT_UInt  glyph_idx;
-
-
-      ch = utf8_next( &p, pEnd );
-      if ( ch < 0 )
-      {
-        /* check for progress in pen position */
-        if ( x + y <= start_x + start_y )
-          return error;
-
-        p  = Text;
-        ch = utf8_next( &p, pEnd );
-      }
-
-      glyph_idx = FTDemo_Get_Index( handle, (FT_UInt32)ch );
-
-      error = FTDemo_Draw_Index( handle, display, glyph_idx, &x, &y );
-
-      if ( error )
-        goto Next;
-
-      if ( !have_topleft )
-      {
-        have_topleft   = 1;
-        status.topleft = ch;
-      }
-
-      if ( X_TOO_LONG( x + size->metrics.x_ppem, display ) )
-      {
-        x  = start_x;
-        y += step_y;
-
-        if ( Y_TOO_LONG( y, display ) )
-          break;
-      }
-
-      continue;
-
-    Next:
-      Process_Error();
-    }
-
-    return -1;
-  }
-
-
-  static int
-  Render_Waterfall( int  mid_size,
-                    int  offset )
-  {
-    int      start_x, start_y, step_y, x, y;
-    int      pt_size, step, pt_height;
-    FT_Size  size;
-    int      have_topleft, start;
-
-    char         text[256];
-    const char*  p;
-    const char*  pEnd;
-
-
-    start_x = START_X;
-    start_y = START_Y;
-
-    have_topleft = 0;
-
-    pt_height = 64 * 72 * display->bitmap->rows / status.res;
-    step      = ( mid_size * mid_size / pt_height + 64 ) & ~63;
-    pt_size   = mid_size - step * ( mid_size / step );  /* remainder */
-
-    while ( 1 )
-    {
-      int first = offset;
-      int ch;
-
-
-      pt_size += step;
-
-      FTDemo_Set_Current_Charsize( handle, pt_size, status.res );
-
-      error = FTDemo_Get_Size( handle, &size );
-      if ( error )
-        break;
-
-      step_y = ( size->metrics.height >> 6 ) + 1;
-
-      x = start_x;
-      y = start_y + ( size->metrics.ascender >> 6 );
-
-      start_y += step_y;
-
-      if ( y >= display->bitmap->rows )
-        break;
-
-      p    = Text;
-      pEnd = p + strlen( Text );
-
-      while ( first-- )
-      {
-        ch = utf8_next( &p, pEnd );
-        if ( ch < 0 )
-        {
-          p  = Text;
-          ch = utf8_next( &p, pEnd );
-        }
-      }
-
-      start = snprintf( text, 256, "%g: ", pt_size / 64.0 );
-      snprintf( text + start, (unsigned int)( 256 - start ), "%s", p );
-
-      p    = text;
-      pEnd = p + strlen( text );
-
-      while ( 1 )
-      {
-        FT_UInt      glyph_idx;
-        const char*  oldp;
-
-
-        oldp = p;
-        ch   = utf8_next( &p, pEnd );
-        if ( ch < 0 )
-        {
-          /* end of the text (or invalid UTF-8); continue to next size */
-          break;
-        }
-
-        glyph_idx = FTDemo_Get_Index( handle, (FT_UInt32)ch );
-
-        error = FTDemo_Draw_Index( handle, display, glyph_idx, &x, &y );
-
-        if ( error )
-          goto Next;
-
-        /* `topleft' should be the first character after the size string */
-        if ( oldp - text == start && !have_topleft )
-        {
-          have_topleft   = 1;
-          status.topleft = ch;
-        }
-
-        if ( X_TOO_LONG( x, display ) )
-          break;
-
-        continue;
-
-      Next:
-        Process_Error();
-      }
-    }
-
-    FTDemo_Set_Current_Charsize( handle, mid_size, status.res );
-    FTDemo_Get_Size( handle, &size );
-
-    return -1;
-  }
-
-
   /*************************************************************************/
   /*************************************************************************/
   /*****                                                               *****/
@@ -858,10 +639,10 @@
     grWriteln( "  2         all glyphs fancy              B         normal                  " );
     grWriteln( "             (emboldened / slanted)       C         light                   " );
     grWriteln( "  3         all glyphs stroked            D         horizontal RGB (LCD)    " );
-    grWriteln( "  4         text string                   E         horizontal BGR (LCD)    " );
-    grWriteln( "  5         waterfall                     F         vertical RGB (LCD)      " );
-    grWriteln( "  space     cycle forwards                G         vertical BGR (LCD)      " );
-    grWriteln( "  backspace cycle backwards               k, l      cycle back and forth    " );
+    grWriteln( "                                          E         horizontal BGR (LCD)    " );
+    grWriteln( "  space     cycle forwards                F         vertical RGB (LCD)      " );
+    grWriteln( "  backspace cycle backwards               G         vertical BGR (LCD)      " );
+    grWriteln( "                                          k, l      cycle back and forth    " );
     grWriteln( "                                                                            " );
     grWriteln( "b           toggle embedded bitmaps     i, I        cycle through color     " );
     grWriteln( "                                                      color palette         " );
@@ -1443,9 +1224,7 @@
                             handle->scaler.face_id, &face );
 
     FTDemo_Draw_Header( handle, display, status.ptsize, status.res,
-                        status.render_mode != RENDER_MODE_TEXT      &&
-                        status.render_mode != RENDER_MODE_WATERFALL ?
-                        status.topleft : -1, error );
+                        status.topleft, error );
 
     /* render mode */
     {
@@ -1462,12 +1241,6 @@
         break;
       case RENDER_MODE_STROKE:
         render_mode = "stroked";
-        break;
-      case RENDER_MODE_TEXT:
-        render_mode = "text string";
-        break;
-      case RENDER_MODE_WATERFALL:
-        render_mode = "waterfall";
         break;
       }
       snprintf( buf, sizeof ( buf ), "%d: %s",
@@ -1689,8 +1462,7 @@
       "  -e enc    Specify encoding tag (default: no encoding).\n"
       "            Common values: `unic' (Unicode), `symb' (symbol),\n"
       "            `ADOB' (Adobe standard), `ADBC' (Adobe custom),\n"
-      "            or a numeric charmap index.\n"
-      "  -m text   Use `text' for rendering.\n" );
+      "            or a numeric charmap index.\n" );
     fprintf( stderr,
       "  -l mode   Set start-up rendering mode (0 <= mode <= %d).\n",
              N_LCD_IDXS - 1 );
@@ -1715,7 +1487,7 @@
 
     while ( 1 )
     {
-      option = getopt( *argc, *argv, "d:e:f:k:L:l:m:pr:v" );
+      option = getopt( *argc, *argv, "d:e:f:k:L:l:pr:v" );
 
       if ( option == -1 )
         break;
@@ -1787,11 +1559,6 @@
             FT_Library_SetLcdGeometry( handle->library, sub );
           }
         }
-        break;
-
-      case 'm':
-        Text               = optarg;
-        status.render_mode = RENDER_MODE_TEXT;
         break;
 
       case 'p':
@@ -1893,14 +1660,6 @@
       case RENDER_MODE_STROKE:
         last = Render_Stroke( handle->current_font->num_indices,
                               status.offset );
-        break;
-
-      case RENDER_MODE_TEXT:
-        last = Render_Text( -1, status.offset );
-        break;
-
-      case RENDER_MODE_WATERFALL:
-        last = Render_Waterfall( status.ptsize, status.offset );
         break;
       }
 
