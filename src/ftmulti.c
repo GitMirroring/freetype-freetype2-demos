@@ -44,7 +44,7 @@
   static char         Header[256];
   static const char*  new_header = NULL;
 
-  static const unsigned char*  Text = (unsigned char*)
+  static unsigned char*  Text = (unsigned char*)
     "The quick brown fox jumps over the lazy dog 0123456789 "
     "\342\352\356\373\364\344\353\357\366\374\377\340\371\351\350\347 "
     "&#~\"\'(-`_^@)=+\260 ABCDEFGHIJKLMNOPQRSTUVWXYZ "
@@ -445,55 +445,54 @@
     x = start_x;
     y = start_y;
 
-    i = first_glyph;
-
-    while ( i < num_glyphs )
+    for ( i = first_glyph; i < num_glyphs; i++ )
     {
       idx = encoding == ULONG_MAX ? (unsigned int)i
                                   : FT_Get_Char_Index( face, (FT_ULong)i );
 
-      if ( !( error = LoadChar( idx, hinted ) ) )
-      {
-#ifdef DEBUG
-        if ( i <= first_glyph + 6 )
-        {
-          LOG(( "metrics[%02d] = [%x %x]\n",
-                i,
-                glyph->metrics.horiBearingX,
-                glyph->metrics.horiAdvance ));
+      error = LoadChar( idx, hinted );
 
-          if ( i == first_glyph + 6 )
-            LOG(( "-------------------------\n" ));
-        }
+      if ( error )
+      {
+        Fail++;
+        continue;
+      }
+
+#ifdef DEBUG
+      if ( i <= first_glyph + 6 )
+      {
+        LOG(( "metrics[%02d] = [%x %x]\n",
+              i,
+              glyph->metrics.horiBearingX,
+              glyph->metrics.horiAdvance ));
+
+        if ( i == first_glyph + 6 )
+          LOG(( "-------------------------\n" ));
+      }
 #endif
 
-        w = glyph->metrics.horiAdvance ? glyph->metrics.horiAdvance >> 6
-                                       : size->metrics.x_ppem / 2;
+      w = glyph->metrics.horiAdvance ? glyph->metrics.horiAdvance >> 6
+                                     : size->metrics.x_ppem / 2;
 
-        if ( x + w > bit->width - 4 )
-        {
-          x  = start_x;
-          y += step_y;
+      if ( x + w > bit->width - 4 )
+      {
+        x  = start_x;
+        y += step_y;
 
-          if ( y >= bit->rows - size->metrics.y_ppem / 5 )
-            break;
-        }
-
-        /* half-step for zero-width glyphs */
-        if ( glyph->metrics.horiAdvance == 0 )
-        {
-           w /= 2;
-           x += w;
-           grFillRect( bit, x, y - w, w, w, step_color );
-        }
-
-        Render_Glyph( x, y );
-        x += w + 1;
+        if ( y >= bit->rows - size->metrics.y_ppem / 5 )
+          break;
       }
-      else
-        Fail++;
 
-      i++;
+      /* half-step for zero-width glyphs */
+      if ( glyph->metrics.horiAdvance == 0 )
+      {
+         w /= 2;
+         x += w;
+         grFillRect( bit, x, y - w, w, w, step_color );
+      }
+
+      Render_Glyph( x, y );
+      x += w + 1;
     }
 
     return i - first_glyph;
@@ -508,57 +507,51 @@
     int  step_y  = size->metrics.height / 64 + 1;
     int  x, y, w, i;
 
-    const unsigned char*  p;
+    unsigned char*  p = Text;
 
 
     x = start_x;
     y = start_y;
 
-    i = first_glyph;
-    p = Text;
-    while ( i > 0 && *p )
-    {
-      p++;
-      i--;
-    }
+    for ( i = first_glyph; i > 0 && *p; p++, i-- )
+      ;
 
-    while ( *p )
+    for ( i = first_glyph; *p; p++, i++ )
     {
-      if ( !( error = LoadChar( FT_Get_Char_Index( face,
-                                                   (unsigned char)*p ),
-                                hinted ) ) )
+
+      error = LoadChar( FT_Get_Char_Index( face, *p ), hinted );
+
+      if ( error )
       {
-#ifdef DEBUG
-        if ( i <= first_glyph + 6 )
-        {
-          LOG(( "metrics[%02d] = [%x %x]\n",
-                i,
-                glyph->metrics.horiBearingX,
-                glyph->metrics.horiAdvance ));
+        Fail++;
+        continue;
+      }
 
-          if ( i == first_glyph + 6 )
-          LOG(( "-------------------------\n" ));
-        }
+#ifdef DEBUG
+      if ( i <= first_glyph + 6 )
+      {
+        LOG(( "metrics[%02d] = [%x %x]\n",
+              i,
+              glyph->metrics.horiBearingX,
+              glyph->metrics.horiAdvance ));
+
+        if ( i == first_glyph + 6 )
+        LOG(( "-------------------------\n" ));
+      }
 #endif
 
-        w = ( ( glyph->metrics.horiAdvance + 32 ) >> 6 ) + 1;
-        if ( x + w > bit->width - 4 )
-        {
-          x  = start_x;
-          y += step_y;
+      w = ( ( glyph->metrics.horiAdvance + 32 ) >> 6 ) + 1;
+      if ( x + w > bit->width - 4 )
+      {
+        x  = start_x;
+        y += step_y;
 
-          if ( y >= bit->rows - size->metrics.y_ppem / 5 )
-            break;
-        }
-
-        Render_Glyph( x, y );
-        x += w;
+        if ( y >= bit->rows - size->metrics.y_ppem / 5 )
+          break;
       }
-      else
-        Fail++;
 
-      i++;
-      p++;
+      Render_Glyph( x, y );
+      x += w;
     }
 
     return 0;
