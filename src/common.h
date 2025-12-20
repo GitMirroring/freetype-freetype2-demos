@@ -17,15 +17,13 @@
 
   /*
    * Read the next UTF-8 code from `*pcursor' and
-   * returns its value. `end' is the limit of the
-   * input string.
+   * returns its value.
    *
-   * Return -1 if the end of the input string is
-   * reached, or in case of malformed data.
+   * Return 0 if terminating zero-byte is reached,
+   * or in case of malformed data.
    */
   extern int
-  utf8_next( const char**  pcursor,
-             const char*   end );
+  utf8_next( const char**  pcursor );
 
   /*
    * Implement `strdup', which is POSIX but not C89 or even C11, and

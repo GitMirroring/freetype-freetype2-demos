@@ -633,7 +633,6 @@
     int      have_topleft;
 
     const char*  p;
-    const char*  pEnd;
     int          ch;
 
 
@@ -644,15 +643,14 @@
     INIT_SIZE( size, start_x, start_y, step_y, x, y );
 
     p    = Text;
-    pEnd = p + strlen( Text );
 
     while ( offset-- )
     {
-      ch = utf8_next( &p, pEnd );
-      if ( ch < 0 )
+      ch = utf8_next( &p );
+      if ( ch == 0 )
       {
         p  = Text;
-        ch = utf8_next( &p, pEnd );
+        ch = utf8_next( &p );
       }
     }
 
@@ -663,15 +661,15 @@
       FT_UInt  glyph_idx;
 
 
-      ch = utf8_next( &p, pEnd );
-      if ( ch < 0 )
+      ch = utf8_next( &p );
+      if ( ch == 0 )
       {
         /* check for progress in pen position */
         if ( x + y <= start_x + start_y )
           return error;
 
         p  = Text;
-        ch = utf8_next( &p, pEnd );
+        ch = utf8_next( &p );
       }
 
       glyph_idx = FTDemo_Get_Index( handle, (FT_UInt32)ch );
@@ -717,7 +715,6 @@
 
     char         text[256];
     const char*  p;
-    const char*  pEnd;
 
 
     start_x = START_X;
@@ -754,15 +751,14 @@
         break;
 
       p    = Text;
-      pEnd = p + strlen( Text );
 
       while ( first-- )
       {
-        ch = utf8_next( &p, pEnd );
-        if ( ch < 0 )
+        ch = utf8_next( &p );
+        if ( ch == 0 )
         {
           p  = Text;
-          ch = utf8_next( &p, pEnd );
+          ch = utf8_next( &p );
         }
       }
 
@@ -770,7 +766,6 @@
       snprintf( text + start, (unsigned int)( 256 - start ), "%s", p );
 
       p    = text;
-      pEnd = p + strlen( text );
 
       while ( 1 )
       {
@@ -779,8 +774,8 @@
 
 
         oldp = p;
-        ch   = utf8_next( &p, pEnd );
-        if ( ch < 0 )
+        ch   = utf8_next( &p );
+        if ( ch == 0 )
         {
           /* end of the text (or invalid UTF-8); continue to next size */
           break;

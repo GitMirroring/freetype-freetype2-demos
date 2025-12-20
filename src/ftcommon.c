@@ -1701,15 +1701,13 @@
   FTDemo_String_Set( FTDemo_Handle*  handle,
                      const char*     string )
   {
-    const char*    p = string;
-    const char*    end = p + strlen( string );
     int            ch;
     PGlyph         glyph = handle->string;
 
 
     handle->string_length = 0;
 
-    while ( ( ch = utf8_next( &p, end ) ) >= 0 )
+    while ( ( ch = utf8_next( &string ) ) > 0 )
     {
       glyph->glyph_index = FTDemo_Get_Index( handle, (FT_UInt32)ch );
 

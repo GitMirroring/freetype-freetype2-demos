@@ -483,8 +483,6 @@
                      int          height )
   {
     ColumnState  column         = &state->columns[idx];
-    const char*  p              = text;
-    const char*  p_end          = p + strlen( text );
     long         load_flags     = FT_LOAD_DEFAULT;
     FT_Face      face;
     int          left           = x;
@@ -529,6 +527,7 @@
 
     while ( 1 )
     {
+      const char*   p = text;
       int           ch;
       FT_UInt       gindex;
       FT_GlyphSlot  slot = face->glyph;
@@ -536,11 +535,11 @@
       FT_Long       xmax;
 
 
-      ch = utf8_next( &p, p_end );
-      if ( ch < 0 )
+      ch = utf8_next( &p );
+      if ( ch == 0 )
       {
         p  = text;
-        ch = utf8_next( &p, p_end );
+        ch = utf8_next( &p );
       }
 
       /* handle newlines */

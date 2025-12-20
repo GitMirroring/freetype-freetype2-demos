@@ -72,15 +72,14 @@
 
 
   extern int
-  utf8_next( const char**  pcursor,
-             const char*   end )
+  utf8_next( const char**  pcursor )
   {
-    const unsigned char*  p = (const unsigned char*)*pcursor;
-    int                   ch;
-    int                   mask = 0x80;  /* the first decision bit */
+    const char*  p = *pcursor;
+    int          ch;
+    int          mask = 0x80;  /* the first decision bit */
 
 
-    if ( (const char*)p >= end || ( *p & 0xc0 ) == 0x80 )
+    if ( *p == 0 || ( *p & 0xc0 ) == 0x80 )
       goto BAD_DATA;
 
     ch = *p++;
@@ -91,7 +90,7 @@
 
       do
       {
-        if ( (const char*)p >= end || ( *p & 0xc0 ) != 0x80 )
+        if ( *p == 0 || ( *p & 0xc0 ) != 0x80 )
           goto BAD_DATA;
 
         ch     = ( ch << 6 ) | ( *p++ & 0x3f );
@@ -99,12 +98,12 @@
       } while ( ch & mask && mask <= 0x200000 );
     }
 
-    *pcursor = (const char*)p;
+    *pcursor = p;
 
     return ch & ( mask - 1 );  /* dropping the decision bits */
 
   BAD_DATA:
-    return -1;
+    return 0;
   }
 
 /* End */
