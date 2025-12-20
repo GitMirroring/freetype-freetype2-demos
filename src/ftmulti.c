@@ -487,7 +487,7 @@
 
 
   static int
-  Render_Text( int  first_glyph )
+  Render_Text( int  offset )
   {
     int  start_x = num_shown_axes ? 18 * 8 : 12;
     int  start_y = size->metrics.y_ppem + HEADER_HEIGHT * 4;
@@ -495,21 +495,31 @@
     int  x, y, w;
 
     const char*  p = Text;
-    int          i, ch;
+    int          ch;
 
 
     x = start_x;
     y = start_y;
 
-    for ( i = first_glyph; i > 0; i-- )
+    while ( 1 )
     {
       ch = utf8_next( &p );
       if ( ch == 0 )
-        p  = Text;
-    }
+      {
+        if ( p == Text )
+          break;
 
-    while ( ( ch = utf8_next( &p ) ) > 0 )
-    {
+        /* check for progress in pen position */
+        if ( offset < 0 && x + y <= start_x + start_y )
+          break;
+
+        p  = Text;
+        ch = utf8_next( &p );
+      }
+
+      if ( offset-- > 0 )
+        continue;
+
       error = LoadChar( FT_Get_Char_Index( face, (FT_ULong)ch ), hinted );
 
       if ( error )

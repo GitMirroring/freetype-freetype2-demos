@@ -630,9 +630,9 @@
   {
     int      start_x, start_y, step_y, x, y;
     FT_Size  size;
-    int      have_topleft;
+    int      have_topleft = 0;
 
-    const char*  p;
+    const char*  p = Text;
     int          ch;
 
 
@@ -642,17 +642,6 @@
 
     INIT_SIZE( size, start_x, start_y, step_y, x, y );
 
-    p    = Text;
-
-    while ( offset-- )
-    {
-      ch = utf8_next( &p );
-      if ( ch == 0 )
-        p  = Text;
-    }
-
-    have_topleft = 0;
-
     while ( 1 )
     {
       FT_UInt  glyph_idx;
@@ -661,13 +650,19 @@
       ch = utf8_next( &p );
       if ( ch == 0 )
       {
+        if ( p == Text )
+          break;
+
         /* check for progress in pen position */
-        if ( x + y <= start_x + start_y )
-          return error;
+        if ( offset < 0 && x + y <= start_x + start_y )
+          break;
 
         p  = Text;
         ch = utf8_next( &p );
       }
+
+      if ( offset-- > 0 )
+        continue;
 
       glyph_idx = FTDemo_Get_Index( handle, (FT_UInt32)ch );
 
