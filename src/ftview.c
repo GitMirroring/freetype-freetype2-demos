@@ -648,10 +648,7 @@
     {
       ch = utf8_next( &p );
       if ( ch == 0 )
-      {
         p  = Text;
-        ch = utf8_next( &p );
-      }
     }
 
     have_topleft = 0;
@@ -756,10 +753,7 @@
       {
         ch = utf8_next( &p );
         if ( ch == 0 )
-        {
           p  = Text;
-          ch = utf8_next( &p );
-        }
       }
 
       start = snprintf( text, 256, "%g: ", pt_size / 64.0 );
