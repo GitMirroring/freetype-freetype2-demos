@@ -44,7 +44,7 @@
   static char         Header[256];
   static const char*  new_header = NULL;
 
-  static unsigned char*  Text = (unsigned char*)
+  static const char*  Text =
     "The quick brown fox jumps over the lazy dog 0123456789 "
     "\342\352\356\373\364\344\353\357\366\374\377\340\371\351\350\347 "
     "&#~\"\'(-`_^@)=+\260 ABCDEFGHIJKLMNOPQRSTUVWXYZ "
@@ -458,19 +458,6 @@
         continue;
       }
 
-#ifdef DEBUG
-      if ( i <= first_glyph + 6 )
-      {
-        LOG(( "metrics[%02d] = [%x %x]\n",
-              i,
-              glyph->metrics.horiBearingX,
-              glyph->metrics.horiAdvance ));
-
-        if ( i == first_glyph + 6 )
-          LOG(( "-------------------------\n" ));
-      }
-#endif
-
       w = glyph->metrics.horiAdvance ? glyph->metrics.horiAdvance >> 6
                                      : size->metrics.x_ppem / 2;
 
@@ -505,40 +492,31 @@
     int  start_x = num_shown_axes ? 18 * 8 : 12;
     int  start_y = size->metrics.y_ppem + HEADER_HEIGHT * 4;
     int  step_y  = size->metrics.height / 64 + 1;
-    int  x, y, w, i;
+    int  x, y, w;
 
-    unsigned char*  p = Text;
+    const char*  p = Text;
+    int          i, ch;
 
 
     x = start_x;
     y = start_y;
 
-    for ( i = first_glyph; i > 0 && *p; p++, i-- )
-      ;
-
-    for ( i = first_glyph; *p; p++, i++ )
+    for ( i = first_glyph; i > 0; i-- )
     {
+      ch = utf8_next( &p );
+      if ( ch == 0 )
+        p  = Text;
+    }
 
-      error = LoadChar( FT_Get_Char_Index( face, *p ), hinted );
+    while ( ( ch = utf8_next( &p ) ) > 0 )
+    {
+      error = LoadChar( FT_Get_Char_Index( face, (FT_ULong)ch ), hinted );
 
       if ( error )
       {
         Fail++;
         continue;
       }
-
-#ifdef DEBUG
-      if ( i <= first_glyph + 6 )
-      {
-        LOG(( "metrics[%02d] = [%x %x]\n",
-              i,
-              glyph->metrics.horiBearingX,
-              glyph->metrics.horiAdvance ));
-
-        if ( i == first_glyph + 6 )
-        LOG(( "-------------------------\n" ));
-      }
-#endif
 
       w = ( ( glyph->metrics.horiAdvance + 32 ) >> 6 ) + 1;
       if ( x + w > bit->width - 4 )
@@ -991,6 +969,7 @@
       "               Common values: `unic' (Unicode), `symb' (symbol),\n"
       "               `ADOB' (Adobe standard), `ADBC' (Adobe custom),\n"
       "               or a numeric charmap index.\n"
+      "  -m text      Use `text' for rendering.\n"
       "  -a axis1,axis2,...\n"
       "               Specify the design coordinates for each\n"
       "               variation axis at start-up.\n"
@@ -1022,7 +1001,7 @@
 
     while ( 1 )
     {
-      option = getopt( argc, argv, "a:d:e:f:r:v" );
+      option = getopt( argc, argv, "a:d:e:f:m:r:v" );
 
       if ( option == -1 )
         break;
@@ -1044,6 +1023,11 @@
 
       case 'f':
         sscanf( optarg, "%i", &first_glyph );
+        break;
+
+      case 'm':
+        Text = optarg;
+        render_mode = 0;
         break;
 
       case 'r':
