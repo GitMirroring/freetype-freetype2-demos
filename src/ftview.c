@@ -1776,6 +1776,7 @@
       case 'm':
         Text               = optarg;
         status.render_mode = RENDER_MODE_TEXT;
+        handle->encoding   = FT_ENCODING_UNICODE;
         break;
 
       case 'p':
