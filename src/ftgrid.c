@@ -1844,7 +1844,7 @@
         break;
 
       case 'm':
-        status.Num       = utf8_next( &optarg );
+        status.Num       = utf8_next( (const char**)&optarg );
         handle->encoding = FT_ENCODING_UNICODE;
         have_index       = 1;
         break;
