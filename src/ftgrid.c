@@ -1770,6 +1770,7 @@
       "            Common values: `unic' (Unicode), `symb' (symbol),\n"
       "            `ADOB' (Adobe standard), `ADBC' (Adobe custom),\n"
       "            or a numeric charmap index.\n"
+      "  -m char   Specify character to display.\n"
       "  -a axis1,axis2,...\n"
       "            Specify the design coordinates for each\n"
       "            Multiple Master axis at start-up.  Implies `-n'.\n"
@@ -1794,7 +1795,7 @@
 
     while ( 1 )
     {
-      option = getopt( *argc, *argv, "a:d:e:f:k:nr:v" );
+      option = getopt( *argc, *argv, "a:d:e:f:k:m:nr:v" );
 
       if ( option == -1 )
         break;
@@ -1840,6 +1841,12 @@
           optarg++;
         if ( *optarg == 'q' )
           status.device = "batch";
+        break;
+
+      case 'm':
+        status.Num       = utf8_next( &optarg );
+        handle->encoding = FT_ENCODING_UNICODE;
+        have_index       = 1;
         break;
 
       case 'n':
