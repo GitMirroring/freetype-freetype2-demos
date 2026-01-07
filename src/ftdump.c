@@ -151,11 +151,12 @@
   static void
   Print_Name( FT_Face  face )
   {
-    const char*  ps_name;
-    TT_Header*   head;
+    const char*     ps_name;
+    TT_Header*      head;
+    PS_FontInfoRec  font_info;
 
 
-    printf( "font name entries\n" );
+    printf( "font info entries\n" );
 
     /* XXX: Foundry?  Copyright?  Version? ... */
 
@@ -196,6 +197,10 @@
 
       printf( head->Font_Revision & 0xFFC0 ? "%s%.4g\n" : "%s%.2f\n",
               Name_Field( "revision" ), head->Font_Revision / 65536.0 );
+    }
+    else if ( !FT_Get_PS_Font_Info( face, &font_info ) && font_info.version )
+    {
+      printf( "%s%s\n", Name_Field( "version" ), font_info.version );
     }
   }
 
