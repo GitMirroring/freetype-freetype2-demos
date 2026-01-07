@@ -528,7 +528,7 @@
         continue;
       }
 
-      w = ( ( glyph->metrics.horiAdvance + 32 ) >> 6 ) + 1;
+      w = ( glyph->metrics.horiAdvance + 48 ) >> 6;
       if ( x + w > bit->width - 4 )
       {
         x  = start_x;
