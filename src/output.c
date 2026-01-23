@@ -196,7 +196,7 @@
       *out++ = ' ';
     *out++ = '"';
 
-    for ( i = 0; i < string_len; i += 2 )
+    for ( i = 0; i + 1 < string_len; i += 2 )
     {
       ch = ( string[i] << 8 ) | string[i + 1];
 
@@ -344,7 +344,7 @@
     len += indent;
     len += 1;
 
-    for ( i = 0; i < string_len; i += 2 )
+    for ( i = 0; i + 1 < string_len; i += 2 )
     {
       ch = ( string[i] << 8 ) | string[i + 1];
 
