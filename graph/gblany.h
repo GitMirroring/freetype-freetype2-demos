@@ -169,13 +169,13 @@ GCONCAT( _gblender_blit_hrgb_, GDST_TYPE )( GBlenderBlit  blit,
       unsigned int  ar = GBLENDER_SHADE_INDEX(src[0]);
       unsigned int  ag = GBLENDER_SHADE_INDEX(src[1]);
       unsigned int  ab = GBLENDER_SHADE_INDEX(src[2]);
-      unsigned int  aa = (ar << 16) | (ag << 8) | ab;
+      unsigned int  aa = ar + ag + ab;
 
       if ( aa == 0 )
       {
         /* nothing */
       }
-      else if ( aa == (GBLENDER_SHADE_COUNT-1) * 0x010101U )
+      else if ( aa == (GBLENDER_SHADE_COUNT-1) * 3 )
       {
         GDST_COPY(dst);
       }
@@ -231,13 +231,13 @@ GCONCAT( _gblender_blit_hbgr_, GDST_TYPE )( GBlenderBlit  blit,
       unsigned int  ab = GBLENDER_SHADE_INDEX(src[0]);
       unsigned int  ag = GBLENDER_SHADE_INDEX(src[1]);
       unsigned int  ar = GBLENDER_SHADE_INDEX(src[2]);
-      unsigned int  aa = (ar << 16) | (ag << 8) | ab;
+      unsigned int  aa = ar + ag + ab;
 
       if ( aa == 0 )
       {
         /* nothing */
       }
-      else if ( aa == (GBLENDER_SHADE_COUNT-1) * 0x010101U )
+      else if ( aa == (GBLENDER_SHADE_COUNT-1) * 3 )
       {
         GDST_COPY(dst);
       }
@@ -294,13 +294,13 @@ GCONCAT( _gblender_blit_vrgb_, GDST_TYPE )( GBlenderBlit  blit,
       unsigned int  ar = GBLENDER_SHADE_INDEX(src[0]);
       unsigned int  ag = GBLENDER_SHADE_INDEX(src[src_pitch]);
       unsigned int  ab = GBLENDER_SHADE_INDEX(src[src_pitch << 1]);
-      unsigned int  aa = (ar << 16) | (ag << 8) | ab;
+      unsigned int  aa = ar + ag + ab;
 
       if ( aa == 0 )
       {
         /* nothing */
       }
-      else if ( aa == (GBLENDER_SHADE_COUNT-1) * 0x010101U )
+      else if ( aa == (GBLENDER_SHADE_COUNT-1) * 3 )
       {
         GDST_COPY(dst);
       }
@@ -357,13 +357,13 @@ GCONCAT( _gblender_blit_vbgr_, GDST_TYPE )( GBlenderBlit  blit,
       unsigned int  ab = GBLENDER_SHADE_INDEX(src[0]);
       unsigned int  ag = GBLENDER_SHADE_INDEX(src[src_pitch]);
       unsigned int  ar = GBLENDER_SHADE_INDEX(src[src_pitch << 1]);
-      unsigned int  aa = (ar << 16) | (ag << 8) | ab;
+      unsigned int  aa = ar + ag + ab;
 
       if ( aa == 0 )
       {
         /* nothing */
       }
-      else if ( aa == (GBLENDER_SHADE_COUNT-1) * 0x010101U )
+      else if ( aa == (GBLENDER_SHADE_COUNT-1) * 3 )
       {
         GDST_COPY(dst);
       }
