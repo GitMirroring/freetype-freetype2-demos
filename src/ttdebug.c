@@ -3032,7 +3032,7 @@
     /* get glyph index */
     if ( sscanf( argv[0], "%d", &tmp ) != 1 || tmp < 0 )
     {
-      printf( "invalid glyph index = %s\n", argv[1] );
+      printf( "invalid glyph index = %s\n", argv[0] );
       Usage( execname );
     }
     glyph_index = (unsigned int)tmp;
