@@ -119,6 +119,7 @@
       <PreprocessorDefinitions>DEVICE_BATCH;DEVICE_WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
+      <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <Optimization>MaxSpeed</Optimization>
       <AdditionalIncludeDirectories>..\..\..\graph</AdditionalIncludeDirectories>
     </ClCompile>
