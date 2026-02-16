@@ -77,9 +77,7 @@
   static FT_Library    library;    /* root library object */
   static FT_Memory     memory;     /* system object       */
   static FT_Driver     driver;     /* truetype driver     */
-  static TT_Face       face;       /* truetype face       */
-  static TT_Size       size;       /* truetype size       */
-  static TT_GlyphSlot  glyph;      /* truetype glyph slot */
+  static FT_Face       face;       /* truetype face       */
 
   static FT_MM_Var    *multimaster;
   static FT_Fixed*     requested_pos;
@@ -3059,19 +3057,19 @@
 
     while ( !error )
     {
-      error = FT_New_Face( library, file_name, face_index, (FT_Face*)&face );
+      error = FT_New_Face( library, file_name, face_index, &face );
       if ( error )
         Abort( "could not open input font file" );
 
       /* find driver and check format */
-      if ( face->root.driver != driver )
+      if ( face->driver != driver )
       {
         error = FT_Err_Invalid_File_Format;
         Abort( "this is not a TrueType font" );
       }
 
       FT_Done_MM_Var( library, multimaster );
-      error = FT_Get_MM_Var( (FT_Face)face, &multimaster );
+      error = FT_Get_MM_Var( face, &multimaster );
       if ( error )
         multimaster = NULL;
       else
@@ -3090,14 +3088,12 @@
             requested_pos[n] = multimaster->axis[n].maximum;
         }
 
-        FT_Set_Var_Design_Coordinates( (FT_Face)face,
+        FT_Set_Var_Design_Coordinates( face,
                                        requested_cnt,
                                        requested_pos );
       }
 
-      size = (TT_Size)face->root.size;
-
-      error = FT_Set_Char_Size( (FT_Face)face,
+      error = FT_Set_Char_Size( face,
                                 glyph_size << 6,
                                 glyph_size << 6,
                                 72,
@@ -3105,10 +3101,8 @@
       if ( error )
         Abort( "could not set character size" );
 
-      glyph = (TT_GlyphSlot)face->root.glyph;
-
       /* now load glyph */
-      error = FT_Load_Glyph( (FT_Face)face,
+      error = FT_Load_Glyph( face,
                              (FT_UInt)glyph_index,
                              FT_LOAD_NO_BITMAP );
       if ( error && error != Quit && error != Restart )
@@ -3116,7 +3110,7 @@
       if ( error == Restart )
         error = FT_Err_Ok;
 
-      FT_Done_Face( (FT_Face)face );
+      FT_Done_Face( face );
     }
 
     Reset_Keyboard();
