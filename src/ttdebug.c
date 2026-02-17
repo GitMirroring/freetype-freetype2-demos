@@ -1554,32 +1554,34 @@
   {
     unsigned int  i;
     char*         s;
+    char*         t;
 
 
-    /* get number of coordinates;                                      */
-    /* a group of non-whitespace characters is handled as one argument */
+    /* get number of coordinates */
     s = arg;
-    for ( requested_cnt = 0; *s; requested_cnt++ )
+    for ( i = 0; *s; i++, s = t )
     {
-      while ( isspace( *s ) )
-        s++;
+      strtod( s, &t );  /* idle parsing */
 
-      while ( *s && !isspace( *s ) )
+      if ( t == s )
+        break;
+      s = t;
+
+      if ( *s == ',' )
         s++;
     }
 
-    requested_pos = (FT_Fixed*)malloc( sizeof ( FT_Fixed ) * requested_cnt );
+    requested_pos = (FT_Fixed*)malloc( sizeof ( FT_Fixed ) * i );
+    if ( !requested_pos )
+      return;
+    requested_cnt = i;
 
     s = arg;
     for ( i = 0; i < requested_cnt; i++ )
     {
       requested_pos[i] = (FT_Fixed)( strtod( s, &s ) * 65536.0 );
-      /* skip until next whitespace in case of junk */
-      /* that `strtod' doesn't handle               */
-      while ( *s && !isspace( *s ) )
-        s++;
 
-      while ( isspace( *s ) )
+      if ( *s == ',' )
         s++;
     }
   }
@@ -2890,7 +2892,7 @@
       "  -I ver    Use TrueType interpreter version VER.\n"
       "            Available versions: %s.\n"
       "  -f idx    Access font IDX if input file is a TTC (default: 0).\n"
-      "  -d \"axis1 axis2 ...\"\n"
+      "  -d axis1,axis2,...\n"
       "            Specify the design coordinates for each variation axis\n"
       "            at start-up (ignored if not a variation font).\n"
       "  -v        Show version.\n"
@@ -2903,11 +2905,6 @@
   }
 
 
-  static char*         file_name;
-  static unsigned int  glyph_index;
-  static int           glyph_size;
-
-
   int
   main( int     argc,
         char**  argv )
@@ -2918,8 +2915,9 @@
     const char*   execname;
     int           version;
     int           face_index = 0;
-
-    int  tmp;
+    char*         file_name;
+    FT_UInt       glyph_index;
+    FT_UInt       glyph_size;
 
 
     /* init library */
@@ -3001,15 +2999,14 @@
       Usage( execname );
 
     /* get glyph index */
-    if ( sscanf( argv[0], "%d", &tmp ) != 1 || tmp < 0 )
+    if ( sscanf( argv[0], "%u", &glyph_index ) != 1 )
     {
       printf( "invalid glyph index = %s\n", argv[0] );
       Usage( execname );
     }
-    glyph_index = (unsigned int)tmp;
 
     /* get glyph size */
-    if ( sscanf( argv[1], "%d", &glyph_size ) != 1 || glyph_size < 0 )
+    if ( sscanf( argv[1], "%u", &glyph_size ) != 1 )
     {
       printf( "invalid glyph size = %s\n", argv[1] );
       Usage( execname );
@@ -3066,17 +3063,15 @@
                                        requested_pos );
       }
 
-      error = FT_Set_Char_Size( face,
-                                glyph_size << 6,
-                                glyph_size << 6,
-                                72,
-                                72 );
+      error = FT_Set_Pixel_Sizes( face,
+                                  glyph_size,
+                                  glyph_size );
       if ( error )
         Abort( "could not set character size" );
 
       /* now load glyph */
       error = FT_Load_Glyph( face,
-                             (FT_UInt)glyph_index,
+                             glyph_index,
                              FT_LOAD_NO_BITMAP );
       if ( error && error != Quit && error != Restart )
         Abort( "could not load glyph" );
