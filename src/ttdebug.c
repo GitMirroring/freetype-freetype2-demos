@@ -44,7 +44,6 @@
   /* `stdin' file descriptor is not in line-by-line input mode.       */
 #ifdef _WIN32
 #include <conio.h>
-#define snprintf  _snprintf
 #define getch     _getch
 #else
 #define getch     getchar
@@ -72,16 +71,15 @@
 
   static FT_Library    library;    /* root library object */
   static FT_Memory     memory;     /* system object       */
-  static FT_Driver     driver;     /* truetype driver     */
   static FT_Face       face;       /* truetype face       */
 
   static FT_MM_Var    *multimaster;
   static FT_Fixed*     requested_pos;
   static unsigned int  requested_cnt;
 
-  static unsigned int  tt_interpreter_versions[2];
-  static int           num_tt_interpreter_versions;
-  static unsigned int  dflt_tt_interpreter_version;
+  static unsigned int  versions[] = { 0,  /* reserved for active */
+                                      TT_INTERPRETER_VERSION_35,
+                                      TT_INTERPRETER_VERSION_40 };
 
   /* number formats */
   enum {
@@ -2852,19 +2850,30 @@
   static void
   Usage( const char*  execname )
   {
-    char  versions[32];
+    int     last = sizeof ( versions ) / sizeof ( versions[0] );
+    int     i;
+    char    *dlm = "";
+    char    buf[32];
+    StrBuf  sb[1];
 
 
-    /* we expect that at least one interpreter version is available */
-    if ( num_tt_interpreter_versions == 1 )
-      snprintf( versions, sizeof ( versions ),
-                "%d",
-                tt_interpreter_versions[0] );
-    else
-      snprintf( versions, sizeof ( versions ),
-                "%d and %d",
-                tt_interpreter_versions[0],
-                tt_interpreter_versions[1] );
+    strbuf_init( sb, buf, sizeof ( buf ) );
+    strbuf_reset( sb );
+
+    /* check available versions */
+    for ( i = 1; i < last; i++ )
+    {
+      error = FT_Property_Set( library,
+                               "truetype",
+                               "interpreter-version", versions + i );
+      if ( !error )
+      {
+        strbuf_format( sb, "%s%d%s",
+                       dlm, versions[i],
+                       versions[i] == versions[0] ? " (active)" : "");
+        dlm = ", ";
+      }
+    }
 
     fprintf( stderr,
       "\n"
@@ -2880,7 +2889,7 @@
       "  font      The TrueType font file to debug.\n"
       "\n"
       "  -I ver    Use TrueType interpreter version VER.\n"
-      "            Available versions are %s; default is version %d.\n"
+      "            Available versions: %s.\n"
       "  -f idx    Access font IDX if input file is a TTC (default: 0).\n"
       "  -d \"axis1 axis2 ...\"\n"
       "            Specify the design coordinates for each variation axis\n"
@@ -2889,8 +2898,7 @@
       "\n"
       "While running, press the `?' key for help.\n"
       "\n",
-      versions,
-      dflt_tt_interpreter_version );
+      buf );
 
     exit( 1 );
   }
@@ -2908,10 +2916,7 @@
     int    option;
     char   version_string[64];
 
-    int           i;
     const char*   execname;
-    unsigned int  versions[2] = { TT_INTERPRETER_VERSION_35,
-                                  TT_INTERPRETER_VERSION_40 };
     int           version;
     int           face_index = 0;
 
@@ -2924,41 +2929,28 @@
       Abort( "could not initialize FreeType library" );
 
     memory = library->memory;
-    driver = (FT_Driver)FT_Get_Module( library, "truetype" );
-    if ( !driver )
-      Abort( "could not find the TrueType driver in FreeType 2\n" );
+
+    /* get the default interpreter version */
+    error = FT_Property_Get( library,
+                            "truetype",
+                            "interpreter-version", versions );
+    if ( error )
+      Abort( "could not find the TrueType driver in FreeType\n" );
 
     {
       FT_Int  major, minor, patch;
-      int     offset;
+      StrBuf  sb[1];
 
+
+      strbuf_init( sb, version_string, sizeof ( version_string ) );
+      strbuf_reset( sb );
 
       FT_Library_Version( library, &major, &minor, &patch );
 
-      offset = snprintf( version_string, 64,
-                         "ttdebug (FreeType) %d.%d",
-                         major, minor );
+      strbuf_format( sb, "ttdebug (FreeType) %d.%d", major, minor );
       if ( patch )
-        offset = snprintf( version_string + offset, (size_t)( 64 - offset ),
-                           ".%d",
-                           patch );
+        strbuf_format( sb, ".%d", patch );
     }
-
-    /* collect all available versions, then set again the default */
-    FT_Property_Get( library,
-                     "truetype",
-                     "interpreter-version", &dflt_tt_interpreter_version );
-    for ( i = 0; i < 2; i++ )
-    {
-      error = FT_Property_Set( library,
-                               "truetype",
-                               "interpreter-version", &versions[i] );
-      if ( !error )
-        tt_interpreter_versions[num_tt_interpreter_versions++] = versions[i];
-    }
-    FT_Property_Set( library,
-                     "truetype",
-                     "interpreter-version", &dflt_tt_interpreter_version );
 
     execname = ft_basename( argv[0] );
 
@@ -2974,28 +2966,16 @@
       case 'I':
         version = atoi( optarg );
 
-        if ( version < 0 )
+        error = FT_Property_Set( library,
+                                 "truetype",
+                                 "interpreter-version", &version );
+
+        if ( error )
         {
           printf( "invalid TrueType interpreter version = %d\n", version );
           Usage( execname );
         }
-
-        for ( i = 0; i < num_tt_interpreter_versions; i++ )
-        {
-          if ( (unsigned int)version == tt_interpreter_versions[i] )
-          {
-            FT_Property_Set( library,
-                             "truetype",
-                             "interpreter-version", &version );
-            break;
-          }
-        }
-
-        if ( i == num_tt_interpreter_versions )
-        {
-          printf( "invalid TrueType interpreter version = %d\n", version );
-          Usage( execname );
-        }
+        versions[0] = version;
         break;
 
       case 'd':
@@ -3047,9 +3027,9 @@
                        FT_DEBUG_HOOK_TRUETYPE,
                        RunIns );
 
-    printf( "%s\n"
+    printf( "%s, TrueType v%d\n"
             "press key `h' or `?' for help\n"
-            "\n", version_string );
+            "\n", version_string, versions[0] );
 
     while ( !error )
     {
@@ -3057,8 +3037,8 @@
       if ( error )
         Abort( "could not open input font file" );
 
-      /* find driver and check format */
-      if ( face->driver != driver )
+      /* check format */
+      if ( strcmp( FT_FACE_DRIVER_NAME( face ), "truetype" ) )
       {
         error = FT_Err_Invalid_File_Format;
         Abort( "this is not a TrueType font" );
