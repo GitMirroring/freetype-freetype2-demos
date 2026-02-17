@@ -30,6 +30,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ftbench", "builds\windows\m
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ftlint", "builds\windows\msvc\ftlint.vcxproj", "{2C433E6D-09FE-4AD5-8DAB-FF558022BE67}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ttdebug", "builds\windows\msvc\ttdebug.vcxproj", "{BF54A461-BBD3-4AED-9637-6A9C31DE1676}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -110,6 +112,14 @@ Global
 		{2C433E6D-09FE-4AD5-8DAB-FF558022BE67}.Release|x64.Build.0 = Release|x64
 		{2C433E6D-09FE-4AD5-8DAB-FF558022BE67}.Release|x86.ActiveCfg = Release|Win32
 		{2C433E6D-09FE-4AD5-8DAB-FF558022BE67}.Release|x86.Build.0 = Release|Win32
+		{BF54A461-BBD3-4AED-9637-6A9C31DE1676}.Debug|x64.ActiveCfg = Debug|x64
+		{BF54A461-BBD3-4AED-9637-6A9C31DE1676}.Debug|x64.Build.0 = Debug|x64
+		{BF54A461-BBD3-4AED-9637-6A9C31DE1676}.Debug|x86.ActiveCfg = Debug|Win32
+		{BF54A461-BBD3-4AED-9637-6A9C31DE1676}.Debug|x86.Build.0 = Debug|Win32
+		{BF54A461-BBD3-4AED-9637-6A9C31DE1676}.Release|x64.ActiveCfg = Release|x64
+		{BF54A461-BBD3-4AED-9637-6A9C31DE1676}.Release|x64.Build.0 = Release|x64
+		{BF54A461-BBD3-4AED-9637-6A9C31DE1676}.Release|x86.ActiveCfg = Release|Win32
+		{BF54A461-BBD3-4AED-9637-6A9C31DE1676}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

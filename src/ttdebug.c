@@ -53,7 +53,6 @@
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
-
 #include <freetype/ftdriver.h>
 #include <freetype/ftmm.h>
 
@@ -61,11 +60,8 @@
 #include "strbuf.h"
 #include "mlgetopt.h"
 
-
-  /* The following header shouldn't be used in normal programs.    */
+  /* The following headers shouldn't be used in normal programs.  */
   /* `freetype/src/truetype' must be in the current include path. */
-#include "ttobjs.h"
-#include "ttdriver.h"
 #include "ttinterp.h"
 #include "tterrors.h"
 
