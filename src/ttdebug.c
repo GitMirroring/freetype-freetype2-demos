@@ -70,7 +70,6 @@
 
 
   static FT_Library    library;    /* root library object */
-  static FT_Memory     memory;     /* system object       */
   static FT_Face       face;       /* truetype face       */
 
   static FT_MM_Var    *multimaster;
@@ -2923,12 +2922,10 @@
     int  tmp;
 
 
-    /* init library, read face object, get driver, create size */
+    /* init library */
     error = FT_Init_FreeType( &library );
     if ( error )
       Abort( "could not initialize FreeType library" );
-
-    memory = library->memory;
 
     /* get the default interpreter version */
     error = FT_Property_Get( library,
