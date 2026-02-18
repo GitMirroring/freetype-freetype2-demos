@@ -3028,7 +3028,7 @@
             "press key `h' or `?' for help\n"
             "\n", version_string, versions[0] );
 
-    while ( !error )
+    do
     {
       error = FT_Open_Face( library, &args, face_index, &face );
       if ( error )
@@ -3071,11 +3071,10 @@
                              FT_LOAD_NO_BITMAP );
       if ( error && error != Quit && error != Restart )
         Abort( "could not load glyph" );
-      if ( error == Restart )
-        error = FT_Err_Ok;
 
       FT_Done_Face( face );
-    }
+
+    } while ( error == Restart );
 
     Reset_Keyboard();
 
