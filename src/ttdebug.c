@@ -2915,9 +2915,10 @@
     const char*   execname;
     int           version;
     int           face_index = 0;
-    char*         file_name;
     FT_UInt       glyph_index;
     FT_UInt       glyph_size;
+
+    FT_Open_Args  args = { FT_OPEN_PATHNAME | FT_OPEN_DRIVER };
 
 
     /* init library */
@@ -2926,11 +2927,13 @@
       Abort( "could not initialize FreeType library" );
 
     /* get the default interpreter version */
-    error = FT_Property_Get( library,
-                            "truetype",
-                            "interpreter-version", versions );
-    if ( error )
+    args.driver = FT_Get_Module( library, "truetype" );
+    if ( !args.driver )
       Abort( "could not find the TrueType driver in FreeType\n" );
+
+    FT_Property_Get( library,
+                     "truetype",
+                     "interpreter-version", versions );
 
     {
       FT_Int  major, minor, patch;
@@ -3013,7 +3016,7 @@
     }
 
     /* get file name */
-    file_name = argv[2];
+    args.pathname = argv[2];
 
     Init_Keyboard();
 
@@ -3027,16 +3030,9 @@
 
     while ( !error )
     {
-      error = FT_New_Face( library, file_name, face_index, &face );
+      error = FT_Open_Face( library, &args, face_index, &face );
       if ( error )
         Abort( "could not open input font file" );
-
-      /* check format */
-      if ( strcmp( FT_FACE_DRIVER_NAME( face ), "truetype" ) )
-      {
-        error = FT_Err_Invalid_File_Format;
-        Abort( "this is not a TrueType font" );
-      }
 
       FT_Done_MM_Var( library, multimaster );
       error = FT_Get_MM_Var( face, &multimaster );
