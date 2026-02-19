@@ -2892,7 +2892,7 @@
       "  -I ver    Use TrueType interpreter version VER.\n"
       "            Available versions: %s.\n"
       "  -f idx    Access font IDX if input file is a TTC (default: 0).\n"
-      "  -d axis1,axis2,...\n"
+      "  -a axis1,axis2,...\n"
       "            Specify the design coordinates for each variation axis\n"
       "            at start-up (ignored if not a variation font).\n"
       "  -v        Show version.\n"
@@ -2926,11 +2926,11 @@
     if ( error )
       Abort( "could not initialize FreeType library" );
 
-    /* get the default interpreter version */
     args.driver = FT_Get_Module( library, "truetype" );
     if ( !args.driver )
       Abort( "could not find the TrueType driver in FreeType\n" );
 
+    /* get the default interpreter version */
     FT_Property_Get( library,
                      "truetype",
                      "interpreter-version", versions );
@@ -2954,7 +2954,7 @@
 
     while ( 1 )
     {
-      option = getopt( argc, argv, "I:d:f:v" );
+      option = getopt( argc, argv, "I:a:f:v" );
 
       if ( option == -1 )
         break;
@@ -2976,7 +2976,7 @@
         versions[0] = version;
         break;
 
-      case 'd':
+      case 'a':
         parse_design_coords( optarg );
         break;
 
