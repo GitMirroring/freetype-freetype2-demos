@@ -2055,7 +2055,8 @@
     }
 
     printf( "Entering `%s' table.\n"
-            "\n", code_range );
+            "Twilight points: %hu. Glyph points: %hu.\n"
+            "\n", code_range, twilight.n_points, pts.n_points );
 
     really_leave = 0;
 
