@@ -52,7 +52,6 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Alexei\source\repos\FreeType\freetype-demos\graph;$(IncludePath)</IncludePath>
     <OutDir>..\..\..\objs\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>..\..\..\objs\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
