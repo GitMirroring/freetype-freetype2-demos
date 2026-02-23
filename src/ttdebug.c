@@ -2055,8 +2055,9 @@
     }
 
     printf( "Entering `%s' table.\n"
-            "Twilight points: %hu. Glyph points: %hu.\n"
-            "\n", code_range, twilight.n_points, pts.n_points );
+            "Twilight points: %hu. Glyph points: %hu%s.\n"
+            "\n", code_range, twilight.n_points, pts.n_points,
+                  exc->is_composite ? ", composite" : "" );
 
     really_leave = 0;
 
