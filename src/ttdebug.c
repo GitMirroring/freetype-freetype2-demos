@@ -1536,16 +1536,22 @@
   static void
   Abort( const char*  message )
   {
-    const FT_String  *str;
+    if ( error != Quit )
+    {
+      const FT_String  *str;
 
 
-    switch( error )
-    #include <freetype/fterrors.h>
+      switch( error )
+      #include <freetype/fterrors.h>
 
-    fprintf( stderr, "%s\n  error = 0x%04x, %s\n", message, error, str );
+      fprintf( stderr, "%s\n  error = 0x%04x, %s\n", message, error, str );
+    }
 
     Reset_Keyboard();
-    exit( 1 );
+    free( requested_pos );
+    FT_Done_FreeType( library );
+
+    exit( error != Quit );
   }
 
 
@@ -3018,6 +3024,37 @@
     /* get file name */
     args.pathname = argv[2];
 
+    error = FT_Open_Face( library, &args, face_index, &face );
+    if ( error || !face->num_glyphs )
+      Abort( "could not open input font file" );
+
+    glyph_index %= face->num_glyphs;
+
+    FT_Done_MM_Var( library, multimaster );
+    error = FT_Get_MM_Var( face, &multimaster );
+    if ( error )
+      multimaster = NULL;
+    else
+    {
+      unsigned int  n;
+
+
+      if ( requested_cnt > multimaster->num_axis )
+        requested_cnt = multimaster->num_axis;
+
+      for ( n = 0; n < requested_cnt; n++ )
+      {
+        if ( requested_pos[n] < multimaster->axis[n].minimum )
+          requested_pos[n] = multimaster->axis[n].minimum;
+        else if ( requested_pos[n] > multimaster->axis[n].maximum )
+          requested_pos[n] = multimaster->axis[n].maximum;
+      }
+
+      FT_Set_Var_Design_Coordinates( face,
+                                     requested_cnt,
+                                     requested_pos );
+    }
+
     Init_Keyboard();
 
     FT_Set_Debug_Hook( library,
@@ -3025,40 +3062,14 @@
                        RunIns );
 
     printf( "%s, TrueType v%d\n"
+            "%s %s, %u ppem, glyph %u\n"
             "press key `h' or `?' for help\n",
-            version_string, versions[0] );
+            version_string, versions[0],
+            face->family_name, face->style_name,
+            glyph_size, glyph_index );
 
     do
     {
-      error = FT_Open_Face( library, &args, face_index, &face );
-      if ( error )
-        Abort( "could not open input font file" );
-
-      FT_Done_MM_Var( library, multimaster );
-      error = FT_Get_MM_Var( face, &multimaster );
-      if ( error )
-        multimaster = NULL;
-      else
-      {
-        unsigned int  n;
-
-
-        if ( requested_cnt > multimaster->num_axis )
-          requested_cnt = multimaster->num_axis;
-
-        for ( n = 0; n < requested_cnt; n++ )
-        {
-          if ( requested_pos[n] < multimaster->axis[n].minimum )
-            requested_pos[n] = multimaster->axis[n].minimum;
-          else if ( requested_pos[n] > multimaster->axis[n].maximum )
-            requested_pos[n] = multimaster->axis[n].maximum;
-        }
-
-        FT_Set_Var_Design_Coordinates( face,
-                                       requested_cnt,
-                                       requested_pos );
-      }
-
       error = FT_Set_Pixel_Sizes( face,
                                   glyph_size,
                                   glyph_size );
@@ -3069,20 +3080,38 @@
       error = FT_Load_Glyph( face,
                              glyph_index,
                              FT_LOAD_NO_BITMAP );
-      if ( error && error != Quit && error != Restart )
-        Abort( "could not load glyph" );
 
-      FT_Done_Face( face );
+      while ( !error )
+      {
+        printf( "\n"
+                "Glyph loaded.\n"
+                "Q to quit, R to restart.\n" );
 
-    } while ( error == Restart );
+        switch( getch() )
+        {
+        case 'Q': error = Quit;    break;
+        case 'R': error = Restart; break;
+        }
+      }
 
-    Reset_Keyboard();
+      switch ( error )
+      {
+        case Restart:
+          /* rebuild size to destroy bytecode data */
+          FT_Done_Size( face->size );
+          FT_New_Size( face, &face->size );
+          break;
 
-    FT_Done_FreeType( library );
+        case Quit:
+          Abort( NULL );
 
-    free( requested_pos );
+        default:
+          Abort( "could not load glyph" );
+      }
 
-    return 0;
+    } while ( 1 );
+
+    return 0;  /* unreachable */
   }
 
 
