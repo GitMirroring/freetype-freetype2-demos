@@ -67,6 +67,7 @@
 
 #define Quit     -1
 #define Restart  -2
+#define Reload   -3
 
 
   static FT_Library    library;    /* root library object */
@@ -2228,7 +2229,7 @@
           printf(
             "ttdebug Help\n"
             "\n"
-            "Q   quit debugger                         V   show vector info\n"
+            "L   reload glyph                          V   show vector info\n"
             "R   restart debugger                      G   show graphics state\n"
             "c   continue to next code range           P   show points zone\n"
             "n   skip to next instruction              T   show twilight zone\n"
@@ -2239,7 +2240,8 @@
             "p   toggle breakpoint at prev. position   O   show opcode docstring\n"
             "F   cycle value format (int, float, 64th)\n"
             "I   toggle hex/decimal integer format     H   show format help\n"
-            "\n" );
+            "Q   quit debugger\n"
+            "\n");
           break;
 
         case 'H':
@@ -2605,6 +2607,14 @@
         error = Restart;
         goto LErrorLabel_;
 
+      /* reload glyph */
+      case 'L':
+        /* without the pedantic hinting flag,                   */
+        /* FreeType ignores bytecode errors in `glyf' programs  */
+        CUR.pedantic_hinting = 1;
+        error = Reload;
+        goto LErrorLabel_;
+
       /* continue */
       case 'c':
         if ( CUR.IP < CUR.codeSize )
@@ -2847,7 +2857,7 @@
     free( storage );
     free( save_storage );
 
-    if ( error && error != Quit && error != Restart )
+    if ( error > 0 )
       Abort( "error during execution" );
 
     return error;
@@ -3085,12 +3095,13 @@
       {
         printf( "\n"
                 "Glyph loaded.\n"
-                "Q to quit, R to restart.\n" );
+                "Q to quit, R to restart, L to reload.\n" );
 
         switch( getch() )
         {
         case 'Q': error = Quit;    break;
         case 'R': error = Restart; break;
+        case 'L': error = Reload;  break;
         }
       }
 
@@ -3100,6 +3111,9 @@
           /* rebuild size to destroy bytecode data */
           FT_Done_Size( face->size );
           FT_New_Size( face, &face->size );
+          break;
+
+        case Reload:
           break;
 
         case Quit:
