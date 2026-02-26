@@ -939,7 +939,7 @@
 
       coords = (FT_Fixed*)malloc( mm->num_axis * sizeof ( FT_Fixed ) );
       if ( coords == NULL )
-        return;
+        goto Exit;
 
       /* We temporarily activate variation font handling.  Because we */
       /* use the default axes, the now retrieved PS name is identical */
@@ -1025,6 +1025,7 @@
       printf( "\n" );
     }
 
+  Exit:
     FT_Done_MM_Var( face->glyph->library, mm );
   }
 

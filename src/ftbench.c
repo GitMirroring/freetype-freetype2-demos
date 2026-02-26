@@ -104,7 +104,6 @@
   static FTC_SBitCache     sbit_cache;
   static FTC_ImageTypeRec  font_type;
 
-  static FT_MM_Var*    multimaster   = NULL;
   static FT_Fixed      design_pos   [MAX_MM_AXES];
   static FT_Fixed      requested_pos[MAX_MM_AXES];
   static unsigned int  requested_cnt = 0;
@@ -238,6 +237,7 @@
     if ( requested_cnt != 0 )
     {
       unsigned int  n;
+      FT_MM_Var*    multimaster;
 
 
       error = FT_Get_MM_Var( *face, &multimaster );
@@ -265,6 +265,8 @@
           design_pos[n] = FT_RoundFix( design_pos[n] );
       }
 
+      FT_Done_MM_Var( lib, multimaster );
+
       error = FT_Set_Var_Design_Coordinates( *face,
                                              used_num_axes,
                                              design_pos );
@@ -273,8 +275,6 @@
         fprintf( stderr, "couldn't set design coordinates\n" );
         return error;
       }
-
-      FT_Done_MM_Var( lib, multimaster );
     }
 
     return error;

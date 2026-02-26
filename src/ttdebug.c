@@ -73,7 +73,6 @@
   static FT_Library    library;    /* root library object */
   static FT_Face       face;       /* truetype face       */
 
-  static FT_MM_Var    *multimaster;
   static FT_Fixed*     requested_pos;
   static unsigned int  requested_cnt;
 
@@ -2933,6 +2932,7 @@
     int           face_index = 0;
     FT_UInt       glyph_index;
     FT_UInt       glyph_size;
+    FT_MM_Var    *multimaster;
 
     FT_Open_Args  args = { FT_OPEN_PATHNAME | FT_OPEN_DRIVER };
 
@@ -3040,11 +3040,7 @@
 
     glyph_index %= face->num_glyphs;
 
-    FT_Done_MM_Var( library, multimaster );
-    error = FT_Get_MM_Var( face, &multimaster );
-    if ( error )
-      multimaster = NULL;
-    else
+    if ( requested_cnt && !FT_Get_MM_Var( face, &multimaster ) )
     {
       unsigned int  n;
 
@@ -3059,6 +3055,8 @@
         else if ( requested_pos[n] > multimaster->axis[n].maximum )
           requested_pos[n] = multimaster->axis[n].maximum;
       }
+
+      FT_Done_MM_Var( library, multimaster );
 
       FT_Set_Var_Design_Coordinates( face,
                                      requested_cnt,
