@@ -23,7 +23,7 @@ if qt_version_opt == 'auto' or qt_version_opt == 'qt6'
     required: qt_version_opt == 'qt6',
     modules: ['Core', 'Gui', 'Widgets'],
     version: '>=6.8')
-  
+
   if qt6_dep.found()
     qt_mod = qt6_mod
     qt_dep = qt6_dep

@@ -781,7 +781,7 @@ StringRenderer::convertCharEncoding(int charUcs4,
   size_t outBytesLeft = sizeof(dstBuffer);
 
   // Execute iconv
-  if (size_t resultCount = iconv(last_iconv.iconv_obj, &inPtr, &inBytesLeft, &outPtr, &outBytesLeft); 
+  if (size_t resultCount = iconv(last_iconv.iconv_obj, &inPtr, &inBytesLeft, &outPtr, &outBytesLeft);
       resultCount== static_cast<size_t>(-1))
     return charUcs4;  // Failed
 

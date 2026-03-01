@@ -1390,7 +1390,7 @@
 
       simple_overlap += ( flags & 0x40 ) >> 6;
 
-      /* followed by more point flags and coordinates */ 
+      /* followed by more point flags and coordinates */
     }
 
     printf( "%s%d", Name_Field( "   simple" ), simple );
