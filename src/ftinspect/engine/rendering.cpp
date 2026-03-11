@@ -1,6 +1,6 @@
 // rendering.cpp
 
-// Copyright (C) 2022-2025 by
+// Copyright (C) 2022-2026 by
 // Charlie Jiang.
 
 #include "engine.hpp"

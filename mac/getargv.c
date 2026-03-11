@@ -1,5 +1,5 @@
 /***********************************************************
-Copyright (C) 1991-2025 by
+Copyright (C) 1991-2026 by
 Stichting Mathematisch Centrum, Amsterdam, The Netherlands.
 
                         All Rights Reserved
