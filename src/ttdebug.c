@@ -2866,11 +2866,11 @@
   static void
   Usage( const char*  execname )
   {
-    int     last = sizeof ( versions ) / sizeof ( versions[0] );
-    int     i;
-    char    *dlm = "";
-    char    buf[32];
-    StrBuf  sb[1];
+    int          last = sizeof ( versions ) / sizeof ( versions[0] );
+    int          i;
+    const char  *dlm = "";
+    char         buf[32];
+    StrBuf       sb[1];
 
 
     strbuf_init( sb, buf, sizeof ( buf ) );
@@ -2934,8 +2934,11 @@
     FT_UInt       glyph_size;
     FT_MM_Var    *multimaster;
 
-    FT_Open_Args  args = { FT_OPEN_PATHNAME | FT_OPEN_DRIVER };
+    FT_Open_Args  args;
 
+
+    args.flags       = FT_OPEN_PATHNAME | FT_OPEN_DRIVER;
+    args.memory_base = NULL;
 
     /* init library */
     error = FT_Init_FreeType( &library );
@@ -3116,6 +3119,7 @@
 
         case Quit:
           Abort( NULL );
+          break;  /* unreachable */
 
         default:
           Abort( "could not load glyph" );

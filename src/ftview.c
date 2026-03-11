@@ -635,6 +635,8 @@
     const char*  p = Text;
     int          ch;
 
+    FT_UNUSED( num_indices );
+
 
     error = FTDemo_Get_Size( handle, &size );
     if ( error )
