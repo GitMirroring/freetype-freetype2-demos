@@ -1179,7 +1179,7 @@
 
       if ( loc + 1 >= end )
       {
-        printf( "\nglyph %d: invalid offset (%d)\n", i, loc );
+        fprintf( stderr, "glyph %d: invalid offset (%d)\n", i, loc );
         continue;
       }
 
@@ -1195,7 +1195,7 @@
         {
           if ( loc + 1 >= end )
           {
-            printf( "\nglyph %d: invalid offset (%d)\n", i, loc );
+            fprintf( stderr, "glyph %d: invalid offset (%d)\n", i, loc );
             goto Continue;
           }
 
@@ -1220,7 +1220,7 @@
       {
         /* zero-contour glyphs can have no data */
         if ( len )
-          printf( "\nglyph %d: invalid offset (%d)\n", i, loc );
+          fprintf( stderr, "glyph %d: invalid offset (%d)\n", i, loc );
         continue;
       }
 
@@ -1233,7 +1233,7 @@
 
       if ( loc + len > end )
       {
-        printf( "\nglyph %d: invalid size (%d)\n", i, len );
+        fprintf( stderr, "glyph %d: invalid size (%d)\n", i, len );
         continue;
       }
 
@@ -1332,7 +1332,7 @@
 
       if ( end == 0 || loc >= end - 1 )
       {
-        printf( "\nglyph %d: invalid offset (%u)\n", i, loc );
+        fprintf( stderr, "glyph %d: invalid offset (%u)\n", i, loc );
         continue;
       }
 
@@ -1345,12 +1345,11 @@
 
         if ( loc + 1 >= end )
         {
-          printf( "\nglyph %d: invalid offset (%u)\n", i, loc );
+          fprintf( stderr, "glyph %d: invalid offset (%u)\n", i, loc );
           continue;
         }
 
         flags = (FT_UInt16)( buffer[loc] << 8 | buffer[loc + 1] );
-
         composite_overlap += ( flags & 0x400 ) >> 10;
 
         continue;
@@ -1364,7 +1363,7 @@
       {
         /* zero-contour glyphs can have no data */
         if ( len )
-          printf( "\nglyph %d: invalid offset (%d)\n", i, loc );
+          fprintf( stderr, "glyph %d: invalid offset (%d)\n", i, loc );
         continue;
       }
 
@@ -1374,7 +1373,7 @@
 
       if ( loc >= end )
       {
-        printf( "\nglyph %d: invalid offset (%d)\n", i, loc );
+        fprintf( stderr, "glyph %d: invalid offset (%d)\n", i, loc );
         continue;
       }
 
