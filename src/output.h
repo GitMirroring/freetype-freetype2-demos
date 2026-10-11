@@ -18,6 +18,10 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
   void
   put_ascii_string( char*     out,
@@ -55,6 +59,10 @@
                     FT_UInt   indent,
                     FT_Int    as_utf8 );
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* OUTPUT_H_ */
 
